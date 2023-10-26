@@ -5,8 +5,9 @@ header-includes: |
        body { min-width: 90% !important; }
     </style>
     <style>
-        .centre {
-          text-align: centre;
+        .header {
+          text-align: center;
+          font-size: 30px;
         }
         .board {
           border: 1px solid black;
@@ -37,6 +38,12 @@ header-includes: |
          .hide {
             display: none;
          }
+         .param {
+            background: lightgreen;
+         }
+         .info {
+            background: lavender;
+         }
     </style>
 include-after: |
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
@@ -47,9 +54,28 @@ include-after: |
 
 # Pyscript - Game for 2 Players
 
-## Pyscript Othello!{#header .centre}
+## Othello{#header .header}
+
+:::{.board .param}
+Select an algorithm: <select id="algo" class="py-input">
+    <option value="1" selected>Method 1</option>
+    <option value="2">Method 2</option>
+</select>
+Select number of players: <select id="nplayer" class="py-input">
+    <option value="2" selected>2 players</option>
+    <option value="1">1 player against machine</option>
+    <option value="0">0 player, machine vs machine</option>
+</select>
+:::
 
 :::{#game .board }
+:::
+
+:::{.board .info}
+Black: [move]{#black .py-input} total: [0]{#bcount .py-input}
+White: [move]{#white .py-input} total: [0]{#wcount .py-input}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[{Message Area}]{#message .py-input}
 :::
 
 <py-terminal id="debug"></py-terminal>
@@ -84,13 +110,18 @@ These two systems have different conventions for the coordinates:
 +--+--+--+--+--+--+--+--+
 |  |  |  |  |  |  |  |  |  7
 +--+--+--+--+--+--+--+--+
- 0   1  2  3  4  5  6  7 
+ 0  1  2  3  4  5  6  7 
 
 Second one to first one: 0 = empty, 1 = black, 2 = white.
 The location ? for first one is: X = 2, Y = 3, for second one is: X = 3, Y = 2.
 For consistency, with the minimal change, all we need to do is:
 (1) flip the ids for cell and image when creating them in the GUI.
 (2) flip (x,y) when updating the board by GUI in do_flip.
+
+This situation arises from the inconsistency between matrix notation and cell notation.
+
+In matrix notation, the first row from left to right is: [0][0], [0][1], [0][2], ...
+In cell notation,   the first row from left to right is: (0, 0), (1, 0), (2, 0), ...
 -->
 
 <!-- pyscript -->
@@ -317,11 +348,7 @@ def ai_move(player):
 #########################
 
 # state mapping between the two versions
-def state(color):
-    if color == 'empty': return '0'
-    if color == 'black': return '1'
-    if color == 'white': return '2'
-    return '?'
+state = {'empty': '0', 'black': '1', 'white': '2'}
 
 # get cell (x,y)
 def cell(x, y):
@@ -331,10 +358,17 @@ def cell(x, y):
 def shape(x, y):
     return document.getElementById(f'img{x}_{y}')
 
+# flip color
+def flip(color):
+    return 'black' if color == 'white' else 'white'
+
 # put a piece at (x,y) with color
 def do_flip(x, y, color):
+    old_color = cell(x, y).color
     cell(x, y).color = color
-    board[y][x] = state(color) # update board with flip
+    board[y][x] = state[color] # update board with flip
+    change_total(color, 1) # update color total
+    if old_color != 'empty': change_total(flip(color), -1) # update color total of opponent
     img = shape(x,y)
     # match piece with correct color
     if color == 'white':
@@ -363,6 +397,7 @@ def flip_in_direction(x, y, direction):
 
 # flip any stone caused by the move (mx, my)
 def flip_stones(move):
+    count = 0 # how many flipped
     mx, my = move
     for direction in directions:
         if flip_in_direction(mx, my, direction):
@@ -370,9 +405,12 @@ def flip_stones(move):
              x, y = mx + dx, my + dy
              while cell(x, y).color != color:
                  do_flip(x, y, color)  # color = current player
+                 count += 1
                  x, y = x + dx, y + dy
 
-    do_flip(mx, my, color)
+    do_flip(mx, my, color) # this is the empty cell
+    count += 1
+    return count
 
 # check if a move at (x,y) is possible
 def possible_move(x, y):
@@ -387,44 +425,55 @@ def valid_move(move):
     x, y = move
     return not (x == -1 and y == -1)
 
+# message area
+message = document.getElementById('message')
+
+# to say something to target
+def say(something, target):
+    where = document.getElementById(target)
+    where.innerHTML = something
+
+# give tell someting with color
+def tell(something, color):    
+    message.innerHTML = something
+    message.style.background = color
+
+# change the total of color
+def change_total(color, amount):
+    span = document.getElementById(f'{color[0]}count')
+    total = int(span.innerHTML) + amount
+    span.innerHTML = str(total)
+
 # make a move
 def make_move(move):
     global color # for update
-    if debug: print(f'move: {move} by {color} = player {state(color)}')
-    flip_stones(move)
+    if debug: print(f'move: {move} by {color} = player {state[color]}')
+    say(f'{move}', color)
+    count = flip_stones(move)
     if debug: PrintBoard()
+    if debug: print(f'{color} flipped over {count} cells.')
     color = flip(color)
-    if debug: print(f'current player: {color} = player {state(color)}')
-
-# flip color
-def flip(color):
-    return 'black' if color == 'white' else 'white'
-
-# title for warning
-title = document.getElementById('header')
+    if debug: print(f'current player: {color} = player {state[color]}')
 
 # handle click on a cell
 def on_click(e):
     if e.target.id.startswith('img'):
-        title.innerHTML = 'Cell is occupied!'
-        title.style.background = 'pink'
+        tell('Cell is occupied!', 'pink')
     else:
         if debug: print(f'click cell id = {e.target.id}')
         x, y = [int(i) for i in e.target.id.split('_')]
         if possible_move(x, y):
-            title.innerHTML = 'Othello'
-            title.style.background = ''
+            tell('', 'white') # remove warning
             make_move((x,y))
             # AI to move
-            move = ai_move(state(color))
+            move = ai_move(state[color])
             if valid_move(move):
                 make_move(move)
+                tell(f'Next to move: {color}', 'white')
             else:
-                title.innerHTML = 'Game Over!'
-                title.style.background = 'green'
+                tell('Game Over!', 'green')
         else:
-            title.innerHTML = 'Cell is ILLEGAL!'
-            title.style.background = 'red'
+            tell('Cell is ILLEGAL!', 'red')
 
 # make the board cells (with flip id for consistency)
 def make_board():
@@ -443,15 +492,17 @@ def make_board():
             td.appendChild(img)
             tr.appendChild(td)
             td.addEventListener('click', create_proxy(on_click))
-            board[j][i] = state('empty') # initialize board with flip
+            board[j][i] = state['empty'] # initialize board with flip
 
         cells.appendChild(tr)
 
     return cells
 
-# initial game pieces
+# make the GUI game
 game = document.getElementById('game')
 game.appendChild(make_board())
+
+# initial game pieces
 do_flip(3, 3, 'white')
 do_flip(4, 4, 'white')
 do_flip(3, 4, 'black')
