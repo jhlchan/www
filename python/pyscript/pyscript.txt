@@ -1,0 +1,568 @@
+
+Pyscript
+--------
+Git: pyscript/pyscript Public
+https://github.com/pyscript/pyscript
+6 tags, from May 2022.
+
+Pyscript and Local files
+------------------------
+Why Does PyScript Need a Local Server?
+by Jeff Glass, Published May 10, 2023
+https://jeff.glass/post/pyscript-need-a-server/
+Starting a Web Server
+Thankfully, if you have Python installed on your system, you already have simple server software available to you. You can start it in three simple steps:
+
+    Open your terminal or command prompt
+
+    Navigate to the folder you want to make available to the network. Typically, this will be the folder where your html (PyScript) file is.
+    Enter the command python -m http.server 8080 --bind 127.0.0.1
+
+Now, in your favorite web browser, navigate to http://127.0.0.1:8080/name-of-a-file to view any file in that folder in your browser.
+
+~/jc/work/anu/web$ python -m http.server 8080 --bind 127.0.0.1
+Serving HTTP on 127.0.0.1 port 8080 (http://127.0.0.1:8080/) ...
+127.0.0.1 - - [07/Oct/2023 00:00:03] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [07/Oct/2023 00:00:04] code 404, message File not found
+127.0.0.1 - - [07/Oct/2023 00:00:04] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [07/Oct/2023 00:00:13] "GET /science/physics.html HTTP/1.1" 200 -
+127.0.0.1 - - [07/Oct/2023 00:00:13] "GET /site.css HTTP/1.1" 200 -
+
+python -m http.server
+URL: http://0.0.0.0:8000/
+
+No need of server! Use "from" in [[fetch]]
+
+How to import remote python files using pyscript
+https://stackoverflow.com/questions/74859112/how-to-import-remote-python-files-using-pyscript
+<py-config>
+  [[fetch]]
+  from = "https://github.com/etc/blob/gh-pages/"
+  files = ["myadd.py"]
+</py-config>
+For local PyScript, the "from" must be http:// or https://.
+Otherwise it default to the URL protocol file://, and browser FETCH of local file is forbidden.
+This does not work:
+<py-script src="mypythonscript.py"> </py-script>
+
+Both in ~/jc/www/python/pyscript:
+pyscript.css   = https://pyscript.net/latest/pyscript.css
+pyscript.js    = https://pyscript.net/latest/pyscript.js
+whats.new.html = https://jeff.glass/post/whats-new-pyscript-2022-12-1/
+
+in  /python/pyscript/demo
+demo01.md      = Compute primes (input/button, py-terminal, py-repl)
+demo02.md      = Math plots (matplotlib, numpy, triangulation)
+demo03.md      = 2D visualization (d3.js = Javascript library in import js)
+demo04.md      = 3D visualization (three.js = Javascript 3D library in import js)
+demo05a.md     = Turtle Graphics (not PyScript, JS from github.com/bjpop/js-turtle/)
+demo05b.md     = Turtle Graphics (not PyScript, JS from github.com/hanumanum/js-turtle/)
+demo05c.md     = Turtle Graphics (not PyScript, JS from skulpt.org/js with direct URL)  working with JS
+demo05.md      = Turtle Graphics (with PyScript, from skulpt.org/js with direct URL) need wrappers in JS
+demo06.md      = Run Python with Debugging (to investigate JS/Python round-trip)
+demo07.md      = Clocks: classic and digital (graphics by PyScript)
+demo08.md      = Compute Fermat's two squares (Python arbitrary-precision integer arithmetic)
+demo09z.md     = Fractals: two static and one dynamic (with select/magnify)  but slower than demo18.
+demo09m.md     = Mandelbrot set (with select/magnify)
+demo09j.md     = Julia set (with select/magnify, and reset with new c)
+demo09n.md     = Newton's fractal (with select/magnify)
+demo09mj.md    = Mandelbrot and Julia sets (with select/magnify, click for c).
+demo09.md      = Fractals: Mandelbrot and Julia sets (with select/magnify, click for c), as well as Newton.
+demo10a.md     = Turtle Graphics by Skulpt, with input and choices.
+demo10b.md     = Turtle Graphics Trinkets (no Pyscript, only Pandoc markdown)
+demo10c.md     = Trinkets playground (to check what libraries are loaded by default)
+demo11a.md     = Pyscript Othello (graphic, no evaluation)
+demo11b.md     = Pyscript Othello (evalution, text-based, input = js.prompt)
+demo11.md      = Pyscript Othello (graphic, with evaluation)
+
+Pyscript Examples
+-----------------
+PyScript demos
+https://pyscript.net/examples/
+<link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
+<script defer src="https://pyscript.net/latest/pyscript.js"></script>
+Basic examples (6)
+MIME Rendering (3)
+JS Interaction (2)
+Visualizations & Dashboards (7)
+total: 6 + 3 + 2 + 7 = 18
+
+in ~/jc/www/python/pyscript/examples
+(latest release)
+
+Basic examples:
+demo00.html   = template
+demo01.html   = Hello world
+demo02.html   = Simple clock
+demo03.html   = REPL (read-eval-print-loop)
+demo04.html   = REPL2 (Custom REPL, slightly better formatting)
+demo05.html   = Todo App
+demo06.html   = Pyscript Native Todo App (with REPL)
+
+MIME Rendering:
+demo07.html   = Matplotlib (package matplotlib)  (a tripcolor plot)
+demo08.html   = Altair                           (a cross-diagram and a bar chart)
+demo09.html   = Folium                           (a world map with information. Use up/down to scroll, as mouse/pointer will zoom in/out)
+
+JS Interaction:
+demo10.html   = Simple d3 visualization (via Javascript D3)   (pie charts, by JS and PyScript)
+demo11.html   = Webgl Icosahedron Example        (floating icosahedra, with mouse/pointer moving cross-mark representing viewpoint)
+
+Visualizations & Dashboards:
+demo12.html   = Simple Static Bokeh Plot         (a 2D data plot with scales)
+demo13.html   = Bokeh Interactive                (a slider, changing the value of amplitude)
+demo14.html   = KMeans Demo in Panel             (a simple dashboard, with cluster plot and tabular data)
+demo15.html   = Streaming Video in Panel         (an editable? data table with a graph??)
+demo16.html   = Simple Panel Demo                (a slider changing the value of amplitude)
+demo17.html   = NYC Taxi Data Panel DeckGL Demo  (sliders on the left and a map on the right)
+demo18.html   = Fractals with NumPy and canvas   (static Mandelbrot and Julia sets and dynamic Newton's fractal)
+
+https://pyscript.net/examples/index.html
+--> index.html
+
+User Guide
+----------
+https://docs.pyscript.net/latest/user-guide/ ==>
+https://docs.pyscript.net/2023.09.1.RC2/user-guide/
+<!-- PyScript CSS -->
+<link rel="stylesheet" href="https://pyscript.net/snapshots/2023.09.1.RC2/core.css">
+<!-- This script tag bootstraps PyScript -->
+<script type="module" src="https://pyscript.net/snapshots/2023.09.1.RC2/core.js"></script>
+
+in ~/jc/www/python/pyscript/guide
+(2023.09 release)
+
+ex00.html    = template
+ex01.html    = Hello + primes using display.
+
+Stanley Ulili Examples
+----------------------
+Intro to PyScript: Run Python in the browser
+by Stanley Ulili, August 1, 2022   22 min read 
+https://blog.logrocket.com/pyscript-run-python-browser/
+PyScript builds upon Pyodide, which ports CPython to WebAssembly. 
+(a series of learning examples, try to follow)
+
+in ~/jc/www/python/pyscript/rocket
+(releases/2022.12.1/)
+
+ex00.html  = template
+ex01.html  = Internal PyScript using display()
+ex02.html  = External PyScript using print()
+ex03.html  = Using the PyScript REPL
+ex04.html  = Using Python modules in PyScript
+ex05.html  = Importing modules from the Python standard library
+ex06.html  = Using third-party packages (numpy, matplotlib.pyplot)
+ex07.html  = Accessing and manipulating HTML elements using PyScript
+ex08.html  = Attaching events to elements
+ex09.html  = Using JavaScript to access and manipulate the DOM
+ex10.html  = Fetching and rendering data from an API
+ex11.html  = Persisting data using localStorage
+ex12.html  = Interacting with the file system
+
+To explore PyScript further, visit the PyScript homepage.
+https://pyscript.net/
+
+In addition, see the Pyodide documentation page to learn more about the possibilities it enables in the browser.
+https://pyodide.org/
+
+John Hanley Examples
+--------------------
+PyScript: Loading Python Code in the Browser
+By John Hanley on May 4th, 2022
+https://www.jhanley.com/blog/pyscript-loading-python-code-in-the-browser/
+Today, you can now use Pyscript to run Python code in the web browser.
+(but using alpha release)
+It has been possible to run Python in the browser for several years (2018). Pyscript does not actually interpret Python code. Pyodide (Pie-O-Dide) is the magic behind Pyscript. In my fifth method in this article, I will show an example that does not use Pyscript and directly loads Python using JavaScript and the Pyodide library.
+
+PyScript: Create the py-script tag at Runtime
+By John Hanley on May 13th, 2022
+https://www.jhanley.com/blog/pyscript-create-the-py-script-tag-at-runtime/
+
+in ~/jc/www/python/pyscript/hanley
+(using alpha release)
+
+ex00.html   = template
+ex01.html   = example1.html
+ex02.html   = python code in ex02.py
+ex03.html   = loading multiple files
+ex04.html   = loading code by pyfetch(url)
+ex05.html   = using Pyodide directly
+ex06.html   = try loading python code by script tag, not working.
+clock.html  = Canvas Clock as PyScript Graphics
+
+Upload Example
+--------------
+PyScript File Uploader
+https://github.com/amrrs/pyscript-file-uploader/
+![Chrome Dino](https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/4ff07986208593.5d9a654e92f36.gif)
+
+in ~/jc/www/python/pyscript/upload
+alpha/upload.html  using alpha release
+latest/upload.html using latest release
+
+alpha:
+-rw-r--r--  1 josephchan  staff  3294898  9 Oct 23:14 pyscript.css
+-rw-r--r--  1 josephchan  staff  1194296  9 Oct 23:14 pyscript.js
+-rw-r--r--  1 josephchan  staff    12114  9 Oct 23:18 pyscript.py (file found)
+-rw-r--r--  1 josephchan  staff     2852 11 Oct 16:43 upload.html
+
+latest:
+-rw-r--r--  1 josephchan  staff     6090  9 Oct 23:25 pyscript.css (src/styles/pyscript_base.css)
+-rw-r--r--  1 josephchan  staff  1118072  9 Oct 23:25 pyscript.js
+-rw-r--r--  1 josephchan  staff     8615  9 Oct 23:25 pyscript.py (file not found)
+-rw-r--r--  1 josephchan  staff     2921 11 Oct 16:43 upload.html
+
+as shownn in: https://pyscript.net/latest/
+
+Jess Glass Example
+------------------
+Project: The 7 GUIs - Pyscript
+https://jeff.glass/project/the-7-guis-pyscript/
+--> pyscript/glass/gui.html
+--> pyscript/glass/gui01.html (the "Count" button finally works)
+see also:
+
+The 7 Tasks 
+https://eugenkiss.github.io/7guis/tasks/
+
+in ~/jc/www/python/pyscript/glass
+(own version, seems not latest)
+
+gui01.html  = Count
+gui02.html  = Temperature Converter
+gui03.html  = Flight Booker
+gui04.html  = Timer
+gui05.html  = CRUD (Databse Create, Read, Update and Delete)
+gui06.html  = Circle Drawer
+gui07.html  = SpreadSheet (author admits unfinished)
+
+PyScript Tutorial - Learn JS Event Listener in PyScript Demo - Button Click Event #8【15:16】cc
+https://www.youtube.com/watch?v=PJuPJJDqqQo
+https://github.com/amrrs/pyscript-file-uploader/
+
+What's New in Pyscript 2022.12.1
+Published December 12, 2022
+https://jeff.glass/post/whats-new-pyscript-2022-12-1/
+
+Changes in Pyscript that may break your code
+Posted on 30/07/2023
+https://pythonprogramming.altervista.org/changes-in-pyscript-that-may-break-your-code/
+
+How to get updated with Pyscript to use Python in the web pages【7:56】no cc
+https://youtu.be/wyY7zhPPXgQ
+
+What's New in Pyscript 2022.12.1
+by Jeff Glass, Published December 12, 2022
+https://jeff.glass/post/whats-new-pyscript-2022-12-1/
+Reshaping the Python API
+For example, check out the difference between the following two pieces of code from the previous and current versions:
+document.getElementById("mydiv").addEventListner("click", pyodide.create_proxy(foo))
+document.getElementById("mydiv").addEventListner("click", pyodide.create_proxy(foo))
+
+PyScript - Why Do We Need create_proxy()?
+by Jeff Glass, Published October 24, 2022
+https://jeff.glass/post/pyscript-why-create-proxy/
+
+Awesome PyScript
+----------------
+Awesome PyScript
+https://github.com/pyscript/pyscript-collective/blob/main/awesome-pyscript.md
+Maintainer Paul Everitt has been hard at work assembling Awesome PyScript, a curated list of awesome things relative to PyScript.
+
+Pyodide
+-------
+Pyodide
+https://pyodide.org/en/stable/
+Pyodide is a Python distribution for the browser and Node.js based on WebAssembly.
+Pyodide is a port of CPython to WebAssembly/Emscripten.
+
+Try Pyodide in a REPL directly in your browser (no installation needed).
+https://pyodide.org/en/stable/console.html
+
+pyscript/pyodide/console.html (from above, works! no server required.)
+
+<py-repl>?   built-in python REPL
+
+GitHub: Pyodide
+https://github.com/pyodide
+many projects
+
+pyodide / pyodide Public
+https://github.com/pyodide/pyodide
+Pyodide is a Python distribution for the browser and Node.js based on WebAssembly.
+Pyodide is a port of CPython to WebAssembly/Emscripten.
+
+Pyodide was created in 2018 by Michael Droettboom at Mozilla as part of the Iodide project.
+Iodide is an experimental web-based notebook environment for literate scientific computing and communication.
+
+Iodide is no longer maintained. If you want to use Pyodide in an interactive client-side notebook,
+see Pyodide notebook environments.
+https://pyodide.org/en/stable/project/related-projects.html#notebook-environments-ides-repls
+
+Pyodide: Frequently Asked Questions#
+https://pyodide.org/en/stable/usage/faq.html
+How can I use a Python function as an event handler?
+To do this correctly use create_proxy() as follows:
+
+Pyodide Python compatibility
+https://pyodide.org/en/stable/usage/wasm-constraints.html
+Most of the Python standard library is functional, except for the modules listed in the sections below:
+Removed modules
+The following modules are removed from the standard library to reduce download size and since they currently wouldn’t work in the WebAssembly VM,
+* curses
+* tkinter (GUI programming)  https://realpython.com/python-gui-tkinter/
+* turtle.py                  https://realpython.com/beginners-guide-python-turtle/
+* turtledemo
+
+Packages built in Pyodide
+https://pyodide.org/en/stable/usage/packages-in-pyodide.html
+Because PyScript is a wrapper around Pyodide, you can access a number of popular third-party libraries that were compiled for WebAssembly with Pyodide:
+* Beautiful Soup    https://realpython.com/beautiful-soup-web-scraper-python/
+* Bokeh             https://realpython.com/python-data-visualization-bokeh/
+* Matplotlib        https://realpython.com/python-matplotlib-guide/
+* NLTK              https://realpython.com/python-nltk-sentiment-analysis/
+* NumPy             https://realpython.com/numpy-tutorial/
+* pandas            https://realpython.com/pandas-python-explore-dataset/
+* Pillow            https://realpython.com/image-processing-with-the-python-pillow-library/
+* SciPy             https://realpython.com/python-scipy-cluster-optimize/
+* SQLAlchemy        https://realpython.com/python-sqlite-sqlalchemy/
+* scikit-learn      https://realpython.com/train-test-split-python-data/
+
+turtle — Turtle graphics
+https://docs.python.org/3/library/turtle.html
+Source code: Lib/turtle.py
+
+@turtle.js/core
+A JS library for turtle graphics
+https://www.jsdelivr.com/package/npm/@turtle.js/core?tab=files
+for NodeJs only? Looks like a CDN distribution
+<script type="module"> import turtleJscore from 'https://cdn.jsdelivr.net/npm/@turtle.js/core@1.0.0/+esm' </script>
+
+Javascript Turtle Graphics
+--------------------------
+js-turtle Documentation
+https://hanumanum.github.io/js-turtle/index_en.html
+js-turtle is an environment to learn/teach programming with JavaScript language. Idea initialy comes from Seymour Papert.
+Javascript version of turtle graphycs initialy started by bjpop, than forked and developed by hanumanum
+https://github.com/hanumanum/js-turtle/archive/master.zip --> js-turtle-master.zip in ~/Download
+unzip to /python/js-turtle/
+
+file:///Users/josephchan/jc/www/python/pyscript/js-turtle/turtle.html  (but no command to type?)
+file:///Users/josephchan/jc/www/python/pyscript/js-turtle/docs/index_en.html  (same as the copied page, all figures are .gif)
+
+
+bjpop/js-turtle: Turtle graphics in Javascript using HTML5
+https://github.com/bjpop/js-turtle
+Try Live:
+http://htmlpreview.github.io/?https://github.com/bjpop/js-turtle/blob/master/turtle.html
+
+in python/pyscript/turtle
+
+turtle.html    demo HTML file
+turtle.css     style CSS
+turle.js       Turtle graphics
+
+These are half-hearted attempts, not really a library. A lot of further work to be done.
+
+turtley.js
+https://replit.com/@TechPandaPro/turtleyjs
+The easy-to-use JavaScript library for turtle graphics
+using async and await, too much?
+
+TURTLE GRAPHICS
+https://compform.net/turtles/
+p5.js + custom library
+Spirograph
+// require https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.js
+// require /turtles/turtle/turtle.js
+Grab the code here.
+https://compform.net/turtles/turtle/turtle
+Need to know something about p5 Sketch.
+
+Turtle graphics in JavaScript the goofball way
+https://slicker.me/javascript/turtle.htm
+I ran across this image generated using Python turtle graphics: ... and immediately felt an overwhelming urge to replicate it in JavaScript.
+Get the image in Javascript Canvas in 25 lines.  All turtle movements by context.moveTo (compare to Python code)
+Nice programming tutorials in Javascript (in a few lines) and Python (in a few lines)
+Javascript version of the original Python code:
+see python/pyscript/trinket/rainbow.html (Rainbow Benzene)
+
+
+Python standard library Turtle
+cpython/Lib/turtle.py
+https://github.com/python/cpython/blob/main/Lib/turtle.py
+# turtle.py: a Tkinter based turtle graphics module for Python
+# Version 1.1b - 4. 5. 2009
+#
+# Copyright (C) 2006 - 2010  Gregor Lingl
+# email: glingl@aon.at
+4176 lines
+https://raw.githubusercontent.com/python/cpython/main/Lib/turtle.py
+
+Checking how  d3 = js.d3 works:
+https://d3js.org/d3.v7.js
+(function (global, factory) {
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+typeof define === 'function' && define.amd ? define(['exports'], factory) :
+(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
+})(this, (function (exports) { 'use strict'; ...
+}));
+
+https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.js
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.THREE = {}));
+})(this, (function (exports) { 'use strict'; ... 
+}));
+
+all with exports.*** at the end.
+
+Online Python Turtle
+--------------------
+trinket: Code is Your Canvas
+https://trinket.io/
+
+has main.py and shapes.py
+
+# You can edit this code and run it right here in the browser!
+# First we'll import some turtles and shapes: 
+from turtle import *
+from shapes import *
+
+# Create a turtle named Tommy:
+tommy = Turtle()
+tommy.shape("turtle")
+tommy.speed(7)
+
+# Draw three circles:
+draw_circle(tommy, "green", 50, 25, 0)
+draw_circle(tommy, "blue", 50, 0, 0)
+draw_circle(tommy, "yellow", 50, -25, 0)
+
+# Write a little message:
+tommy.penup()
+tommy.goto(0,-50)
+tommy.color("black")
+tommy.write("Teach With Code!", None, "center", "16pt bold")
+tommy.goto(0,-80)
+
+
+Put Interactive Python Anywhere on the Web 
+https://trinket.io/python
+
+import turtle
+
+t = turtle.Turtle()
+
+for c in ['red', 'green', 'yellow', 'blue']:
+    t.color(c)
+    t.forward(75)
+    t.left(90)
+
+can show turtle on the right,
+
+default example:
+from math import sin
+from processing import *
+
+X = 30
+Y = 30
+delay = 16
+radius = 30
+
+def setup():
+    strokeWeight(10)
+    frameRate(20)
+    size(300,300)
+
+def ellipseFun():
+    global X, Y, radius
+    background(100)
+    fill(0,121,184)
+    stroke(255)
+    fc = environment.frameCount
+
+    X += (mouse.x-X)/delay;
+    Y += (mouse.y-Y)/delay;
+
+    radius = radius + sin(fc / 4)
+
+    ellipse(X,Y,radius,radius)
+
+
+draw = ellipseFun 
+run()
+
+# Example taken from Brad Miller's interactivepython.org
+# See more here: http://www.skulpt.org/static/proctest.html
+
+in /python/pyscript/trinket/
+-rw-r--r--   1 josephchan  staff  46746 15 Oct 11:40 site-embed-python.html   https://trinket.io/embed/python
+-rw-r--r--   1 josephchan  staff  33375 15 Oct 11:33 site-index.html          https://trinket.io/
+-rw-r--r--   1 josephchan  staff  23966 15 Oct 11:35 site-python.html         https://trinket.io/python
+
+<iframe id="trinket-iframe" src="/embed/python?sharePage=true&start=result&category=python&shareType=python&font=12px" width="100%" height="100%" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+
+file:///Users/josephchan/jc/www/python/pyscript/trinket/site-embed-python.html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.4/socket.io.min.js"></script>
+<script type="text/javascript" src="https://trinket-cdn.trinket.io/50e5bcc6-skulpt.min.js"></script>
+<script type="text/javascript" src="https://trinket-cdn.trinket.io/50e5bcc6-skulpt-stdlib.js"></script>
+<script src="https://trinket-cdn.trinket.io/embed-python-a933708838.js" type="text/javascript"></script>
+https://trinket-cdn.trinket.io/embed-python-a933708838.js   a minimized version
+There is: pysocket.trinket.io
+so it looks like this is sending Python codes to backend, then execute to produce the graphics, using Skulpt.
+
+Skulpt
+------
+Skulpt
+https://skulpt.org/
+Python. Client Side.
+Skulpt is an entirely in-browser implementation of Python.
+No preprocessing, plugins, or server-side support required, just write Python and reload.
+https://github.com/skulpt/skulpt-dist/archive/master.zip  (distribution has just a few files)
+https://github.com/skulpt/skulpt/archive/refs/heads/master.zip (this one has examples)
+After adding skulpt.js or skulpt-min.js and skulpt-stdlib.js to your project, load the Javascript just before the </body> closing tag.
+<script src="https://skulpt.org/js/skulpt.min.js" type="text/javascript"></script>
+<script src="https://skulpt.org/js/skulpt-stdlib.js" type="text/javascript"></script>
+We’re working on getting skulpt onto popular CDNs so you can load them straight from there.
+simpleskulpt.html
+https://skulpt.org/js/skulpt.js (download from https://github.com/skulpt/skulpt-dist/blob/master/skulpt.js)
+https://skulpt.org/js/skulpt-stdlib.js
+GitHub:
+https://github.com/skulpt/
+
+demo07.md   with Skulpt almost works.
+
+PyScript: JavaScript and Python Interoperability
+By John Hanley on May 10th, 2022 in Pyodide, Pyscript, Python
+https://www.jhanley.com/blog/pyscript-javascript-and-python-interoperability/
+Pyodide attaches JavaScript functions to the global namespace. To import the global namespace into Python include this line:
+import js
+If you will be calling async JavaScript functions, also add this line:
+import asyncio
+
+Programming Skulpt
+https://skulpt.org/docs/index.html
+What is Skulpt?
+
+Skulpt is a system that compiles Python (of the 2.6-ish variety) into Javascript. But it's not Javascript that you can paste in to your browser and run. Python and Javascript are very different languanges, their types are different, their scoping rules are different. Python is designed to be run on Linux, or Windows, or Mac OS X, not in the browser! So, to provide a True Python experience Skulpt must provide a runtime environment in which the compiled code executes. This runtime environment is provided by the skulpt.min.js and skulpt-stdlib.js files that you must include in your web page in order to make Skulpt work.
+
+Pyscript DOM
+------------
+PyDom: Pythonic DOM API
+https://fpliger.pyscriptapps.com/pyweb/latest/pydom.html
+a page with <py-md>
+takes: https://fpliger.pyscriptapps.com/pyweb/latest/pyscript.html
+ also: https://fpliger.pyscriptapps.com/pyweb/latest/main.py
+/python/pyscript/pydom.html
+(cannot work locally, even with local server)
+
+Welcome to this demo of a higher level base Web API for Python
+https://fpliger.pyscriptapps.com/pyweb/ ==>
+https://fpliger.pyscriptapps.com/pyweb/latest/
+(have: Make on pyscript.com, View Code)
+
+This is something new: PyDom.
+
