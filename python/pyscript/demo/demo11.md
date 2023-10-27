@@ -57,14 +57,22 @@ include-after: |
 ## Othello{#header .header}
 
 :::{.board .param}
-Select an algorithm: <select id="algo" class="py-input">
-    <option value="1" selected>Method 1</option>
-    <option value="2">Method 2</option>
+&nbsp;&nbsp;&nbsp;
+Select an algorithm: <select id="option" class="py-input">
+    <option value="0" selected>EvalBoard</option>
+    <option value="1">Minimax</option>
+    <option value="2">Minimax with &alpha;-&beta; pruning</option>
+    <option value="3">Negamax</option>
+    <option value="4">Negamax with &alpha;-&beta; pruning</option>
+    <option value="5">Negascout</option>
+    <option value="6">Minimax &alpha;-&beta; with sorted nodes</option>
+    <option value="7">Negamax &alpha;-&beta; with sorted nodes</option>
+    <option value="8">Negascout with sorted nodes</option>
 </select>
 Select number of players: <select id="nplayer" class="py-input">
-    <option value="2" selected>2 players</option>
-    <option value="1">1 player against machine</option>
-    <option value="0">0 player, machine vs machine</option>
+    <option value="2" selected>2</option>
+    <option value="1">1, you vs AI</option>
+    <option value="0">0, AI vs AI</option>
 </select>
 :::
 
@@ -72,10 +80,11 @@ Select number of players: <select id="nplayer" class="py-input">
 :::
 
 :::{.board .info}
-Black: [move]{#black .py-input} total: [0]{#bcount .py-input}
-White: [move]{#white .py-input} total: [0]{#wcount .py-input}
+&nbsp;&nbsp;&nbsp;
+<img class="black"></img> move: [move]{#black .py-input} total: [0]{#bcount .py-input}
+<img class="white"></img> move: [move]{#white .py-input} total: [0]{#wcount .py-input}
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[{Message Area}]{#message .py-input}
+[{Message Area}]{#message .py-input }
 :::
 
 <py-terminal id="debug"></py-terminal>
@@ -141,13 +150,13 @@ debug = True
 if not debug: document.getElementById('debug').style = 'display: none'
 
 # number of human players
-nplayers = 2   # game just checks valid move
-# nplayers = 1   # game is human vs AI
-# nplayers = 0   # game is AI vs AI
+nplayer = 2   # game just checks valid move
+# nplayer = 1   # game is human vs AI
+# nplayer = 0   # game is AI vs AI
 # Is it possible for the game to play according to a move script?
 
-# neighbours of a piece
-directions = [(1, 1), (-1, 1), (0, 1), (1, -1), (-1, -1), (0, -1), (1, 0), (-1, 0)]
+# option for algorithm
+option = 0    # EvalBoard
 
 #########################
 # The AI move algorithm #
@@ -263,6 +272,164 @@ def GetSortedNodes(board, player):
     sortedNodes = [node[0] for node in sortedNodes]
     return sortedNodes
 
+# Minimax algorithm
+# https://en.wikipedia.org/wiki/Minimax
+def Minimax(board, player, depth, maximizingPlayer):
+    if depth == 0 or IsTerminalNode(board, player):
+        return EvalBoard(board, player)
+    if maximizingPlayer:
+        bestValue = minEvalBoard
+        for y in range(n):
+            for x in range(n):
+                if ValidMove(board, x, y, player):
+                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                    v = Minimax(boardTemp, player, depth - 1, False)
+                    bestValue = max(bestValue, v)
+    else: # minimizingPlayer
+        bestValue = maxEvalBoard
+        for y in range(n):
+            for x in range(n):
+                if ValidMove(board, x, y, player):
+                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                    v = Minimax(boardTemp, player, depth - 1, True)
+                    bestValue = min(bestValue, v)
+    return bestValue
+
+# Alpha-beta Pruning
+# https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
+def AlphaBeta(board, player, depth, alpha, beta, maximizingPlayer):
+    if depth == 0 or IsTerminalNode(board, player):
+        return EvalBoard(board, player)
+    if maximizingPlayer:
+        v = minEvalBoard
+        for y in range(n):
+            for x in range(n):
+                if ValidMove(board, x, y, player):
+                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                    v = max(v, AlphaBeta(boardTemp, player, depth - 1, alpha, beta, False))
+                    alpha = max(alpha, v)
+                    if beta <= alpha:
+                        break # beta cut-off
+        return v
+    else: # minimizingPlayer
+        v = maxEvalBoard
+        for y in range(n):
+            for x in range(n):
+                if ValidMove(board, x, y, player):
+                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                    v = min(v, AlphaBeta(boardTemp, player, depth - 1, alpha, beta, True))
+                    beta = min(beta, v)
+                    if beta <= alpha:
+                        break # alpha cut-off
+        return v
+
+# Alpha-beta Pruning with Sorted Nodes
+def AlphaBetaSN(board, player, depth, alpha, beta, maximizingPlayer):
+    if depth == 0 or IsTerminalNode(board, player):
+        return EvalBoard(board, player)
+    sortedNodes = GetSortedNodes(board, player)
+    if maximizingPlayer:
+        v = minEvalBoard
+        for boardTemp in sortedNodes:
+            v = max(v, AlphaBetaSN(boardTemp, player, depth - 1, alpha, beta, False))
+            alpha = max(alpha, v)
+            if beta <= alpha:
+                break # beta cut-off
+        return v
+    else: # minimizingPlayer
+        v = maxEvalBoard
+        for boardTemp in sortedNodes:
+            v = min(v, AlphaBetaSN(boardTemp, player, depth - 1, alpha, beta, True))
+            beta = min(beta, v)
+            if beta <= alpha:
+                break # alpha cut-off
+        return v
+
+# Negamax
+# https://en.wikipedia.org/wiki/Negamax
+def Negamax(board, player, depth, color):
+    if depth == 0 or IsTerminalNode(board, player):
+        return color * EvalBoard(board, player)
+    bestValue = minEvalBoard
+    for y in range(n):
+        for x in range(n):
+            if ValidMove(board, x, y, player):
+                (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                v = -Negamax(boardTemp, player, depth - 1, -color)
+                bestValue = max(bestValue, v)
+    return bestValue
+
+# Negamax with Alpha-beta Pruning
+def NegamaxAB(board, player, depth, alpha, beta, color):
+    if depth == 0 or IsTerminalNode(board, player):
+        return color * EvalBoard(board, player)
+    bestValue = minEvalBoard
+    for y in range(n):
+        for x in range(n):
+            if ValidMove(board, x, y, player):
+                (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                v = -NegamaxAB(boardTemp, player, depth - 1, -beta, -alpha, -color)
+                bestValue = max(bestValue, v)
+                alpha = max(alpha, v)
+                if alpha >= beta:
+                    break
+    return bestValue
+
+# Negamax with Alpha-beta Pruning and Sorted Nodes
+def NegamaxABSN(board, player, depth, alpha, beta, color):
+    if depth == 0 or IsTerminalNode(board, player):
+        return color * EvalBoard(board, player)
+    sortedNodes = GetSortedNodes(board, player)
+    bestValue = minEvalBoard
+    for boardTemp in sortedNodes:
+        v = -NegamaxABSN(boardTemp, player, depth - 1, -beta, -alpha, -color)
+        bestValue = max(bestValue, v)
+        alpha = max(alpha, v)
+        if alpha >= beta:
+            break
+    return bestValue
+
+# Negascout
+# https://en.wikipedia.org/wiki/Principal_variation_search
+def Negascout(board, player, depth, alpha, beta, color):
+    if depth == 0 or IsTerminalNode(board, player):
+        return color * EvalBoard(board, player)
+    firstChild = True
+    for y in range(n):
+        for x in range(n):
+            if ValidMove(board, x, y, player):
+                (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                if not firstChild:
+                    score = -Negascout(boardTemp, player, depth - 1, -alpha - 1, -alpha, -color)
+                    if alpha < score and score < beta:
+                        score = -Negascout(boardTemp, player, depth - 1, -beta, -score, -color)
+                else:
+                    firstChild = False
+                    score = -Negascout(boardTemp, player, depth - 1, -beta, -alpha, -color)
+                alpha = max(alpha, score)
+                if alpha >= beta:
+                    break
+    return alpha
+
+# Negascout with Sorted Nodes
+def NegascoutSN(board, player, depth, alpha, beta, color):
+    if depth == 0 or IsTerminalNode(board, player):
+        return color * EvalBoard(board, player)
+    sortedNodes = GetSortedNodes(board, player)
+    firstChild = True
+    for boardTemp in sortedNodes:
+        if not firstChild:
+            score = -NegascoutSN(boardTemp, player, depth - 1, -alpha - 1, -alpha, -color)
+            if alpha < score and score < beta:
+                score = -NegascoutSN(boardTemp, player, depth - 1, -beta, -score, -color)
+        else:
+            firstChild = False
+            score = -NegascoutSN(boardTemp, player, depth - 1, -beta, -alpha, -color)
+        alpha = max(alpha, score)
+        if alpha >= beta:
+            break
+    return alpha
+
 # compute the best move by a player
 def BestMove(board, player):
     maxPoints = 0
@@ -272,24 +439,16 @@ def BestMove(board, player):
             if ValidMove(board, x, y, player):
                 boardTemp, _ = MakeMove(copy.deepcopy(board), x, y, player)
                 '''
-                if opt == 0:
-                    points = EvalBoard(boardTemp, player)
-                elif opt == 1:
-                    points = Minimax(boardTemp, player, depth, True)
-                elif opt == 2:
-                    points = AlphaBeta(board, player, depth, minEvalBoard, maxEvalBoard, True)
-                elif opt == 3:
-                    points = Negamax(boardTemp, player, depth, 1)
-                elif opt == 4:
-                    points = NegamaxAB(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
-                elif opt == 5:
-                    points = Negascout(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
-                elif opt == 6:
-                    points = AlphaBetaSN(board, player, depth, minEvalBoard, maxEvalBoard, True)
-                elif opt == 7:
-                    points = NegamaxABSN(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
-                elif opt == 8:
-                    points = NegascoutSN(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
+                match option:
+                    case 0: points = EvalBoard(boardTemp, player)
+                    case 1: points = Minimax(boardTemp, player, depth, True)
+                    case 2: points = AlphaBeta(board, player, depth, minEvalBoard, maxEvalBoard, True)
+                    case 3: points = Negamax(boardTemp, player, depth, 1)
+                    case 4: points = NegamaxAB(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
+                    case 5: points = Negascout(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
+                    case 6: points = AlphaBetaSN(board, player, depth, minEvalBoard, maxEvalBoard, True)
+                    case 7: points = NegamaxABSN(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
+                    case 8: points = NegascoutSN(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
                 '''
                 points = EvalBoard(boardTemp, player)
                 if points > maxPoints:
@@ -297,41 +456,6 @@ def BestMove(board, player):
                     mx, my = (x, y)
 
     return (mx, my)
-
-# play the game (text version) for m moves
-def othello(m):
-    print('Players: 1 = User,  2 = AI\n')
-    InitBoard()
-    # while True:
-    global board
-    step = 0
-    while step < m:
-        step += 1 
-        for player in ['1', '2']:
-            print()
-            PrintBoard()
-            print(f'PLAYER: {player}')
-            if IsTerminalNode(board, player):
-                print('Player cannot play! Game ended!')
-                print(f"Score User: {EvalBoard(board, '1')}")
-                print(f"Score AI  : {EvalBoard(board, '2')}")
-                step = m
-                break      
-            if player == '1': # user's turn
-                x, y = BestMove(board, player)
-                if not (x == -1 and y == -1):
-                    board, total = MakeMove(board, x, y, player)
-                    print(f'User played (X Y): {x} {y}')
-                    print(f'# of pieces taken: {total}')
-            else: # AI's turn
-                x, y = BestMove(board, player)
-                if not (x == -1 and y == -1):
-                    board, total = MakeMove(board, x, y, player)
-                    print(f'AI played (X Y): {x} {y}')
-                    print(f'# of pieces taken: {total}')
-
-# play 3 steps
-# othello(3)
 
 # Use AI algorithm for a player move
 def ai_move(player):
@@ -349,6 +473,9 @@ def ai_move(player):
 
 # state mapping between the two versions
 state = {'empty': '0', 'black': '1', 'white': '2'}
+
+# neighbours of a piece
+directions = [(1, 1), (-1, 1), (0, 1), (1, -1), (-1, -1), (0, -1), (1, 0), (-1, 0)]
 
 # get cell (x,y)
 def cell(x, y):
@@ -434,7 +561,7 @@ def say(something, target):
     where.innerHTML = something
 
 # give tell someting with color
-def tell(something, color):    
+def tell(something, color = 'white'):
     message.innerHTML = something
     message.style.background = color
 
@@ -446,7 +573,7 @@ def change_total(color, amount):
 
 # make a move
 def make_move(move):
-    global color # for update
+    global board, color # for update
     if debug: print(f'move: {move} by {color} = player {state[color]}')
     say(f'{move}', color)
     count = flip_stones(move)
@@ -465,23 +592,66 @@ def on_click(e):
         if possible_move(x, y):
             tell('', 'white') # remove warning
             make_move((x,y))
-            # AI to move
-            move = ai_move(state[color])
-            if valid_move(move):
-                make_move(move)
-                tell(f'Next to move: {color}', 'white')
+            if nplayer == 2:
+                tell(f'Next to move: {color}')
             else:
-                tell('Game Over!', 'green')
+                # AI to move
+                move = ai_move(state[color])
+                if valid_move(move):
+                    make_move(move)
+                    tell(f'Next to move: {color}')
+                else:
+                    tell('Game Over!', 'green')
         else:
             tell('Cell is ILLEGAL!', 'red')
+
+# auto play the game
+def auto_play():
+    global board
+    print('Players: 1 = User,  2 = AI\n')
+    max = 3 # max number of steps
+    end = False
+    step = 0
+    while not end:
+        step += 1
+        print(f'auto_play: step = {step}')
+        end = (step == max)
+        for color in ['black', 'white']:
+            tell(f'PLAYER: {color}', 'yellow')
+            player = state[color]
+            if IsTerminalNode(board, player):
+                end = True
+                break
+            # keep playing 
+            move = BestMove(board, player)
+            if valid_move(move):
+                make_move(move)
+            else: # Game over
+                end = True
+                break
+
+    # tell the result
+    c1 = EvalBoard(board, '1')
+    c2 = EvalBoard(board, '2')
+    print(f'Game over for {color}! User score: {c1}, AI score: {c2}')
+    tell(f'Game over for {color}!', 'yellow')
+
+# reset the game
+def reset(event): # event is ignored
+    global nplayer, option
+    nplayer = int(Element('nplayer').value)
+    option = int(Element('option').value)
+    if debug: print(f'Number of players: {nplayer}')
+    if debug: print(f'Algorithm selected: {option}')
+    new_game()
 
 # make the board cells (with flip id for consistency)
 def make_board():
     cells = document.createElement('table')
     cells.id = 'board'
-    for i in range(8):
+    for i in range(n):
         tr = document.createElement('tr')
-        for j in range(8):
+        for j in range(n):
             td = document.createElement('td')
             td.id = f'{j}_{i}' # flip id
             td.classList.add('cell')
@@ -491,30 +661,53 @@ def make_board():
             img.id = f'img{j}_{i}' # flip id
             td.appendChild(img)
             tr.appendChild(td)
-            td.addEventListener('click', create_proxy(on_click))
-            board[j][i] = state['empty'] # initialize board with flip
 
         cells.appendChild(tr)
 
     return cells
 
+# clean the board
+def clean_board():
+    for i in range(n):
+        for j in range(n):
+            td = cell(j, i)
+            td.removeEventListener('click', create_proxy(on_click))
+            if nplayer != 0: td.addEventListener('click', create_proxy(on_click))
+            board[j][i] = state['empty'] # initialize board with flip
+
+# new game
+def new_game():
+    global color
+    # initial game pieces
+    clean_board()
+    do_flip(3, 3, 'white')
+    do_flip(4, 4, 'white')
+    do_flip(3, 4, 'black')
+    do_flip(4, 3, 'black')
+
+    if debug: print('New Game Board:\n')
+    if debug: PrintBoard()
+
+    # black play first
+    color = 'black'
+    if debug: print(f'first player: {color}')
+
+    # check auto-play
+    if nplayer == 0: auto_play()
+
 # make the GUI game
 game = document.getElementById('game')
 game.appendChild(make_board())
 
-# initial game pieces
-do_flip(3, 3, 'white')
-do_flip(4, 4, 'white')
-do_flip(3, 4, 'black')
-do_flip(4, 3, 'black')
+# listen for selections
+select = document.getElementById('nplayer')
+select.addEventListener('change', create_proxy(reset))
 
-if debug: print('New Game Board:\n')
-if debug: PrintBoard()
+select = document.getElementById('option')
+select.addEventListener('change', create_proxy(reset))
 
-# black play first
-color = 'black'
-if debug: print(f'first player: {color}')
-
+# start new game
+new_game()
 </py-script>
 ```
 :::
