@@ -58,7 +58,7 @@ include-after: |
 
 :::{.board .param}
 &nbsp;&nbsp;&nbsp;
-Select an algorithm: <select id="option" class="py-input">
+Pick algorithm: <select id="option" class="py-input">
     <option value="0" selected>Evaluate Board</option>
     <option value="1">Minimax</option>
     <option value="2">Minimax with &alpha;-&beta; pruning</option>
@@ -69,11 +69,20 @@ Select an algorithm: <select id="option" class="py-input">
     <option value="7">Negamax &alpha;-&beta; with sorted nodes</option>
     <option value="8">Negascout with sorted nodes</option>
 </select>
-Select number of players: <select id="nplayer" class="py-input">
+Number of players: <select id="nplayer" class="py-input">
     <option value="2" selected>2</option>
-    <option value="1">1, you vs AI</option>
-    <option value="0">0, AI vs AI</option>
+    <option value="1">1</option>
+    <option value="0">0</option>
 </select>
+Game: <select id="code" class="py-input">
+    <option value="0" selected>New</option>
+    <option value="1">game 1</option>
+    <option value="2">game 2</option>
+    <option value="3">game 3</option>
+</select>
+
+* \# of players: 2 = black and white, 1 = black vs machine , 0 = machine vs machine.
+* Game moves are recorded, click "Save" to get the moves in clipboard.
 :::
 
 :::{#game .board }
@@ -81,10 +90,11 @@ Select number of players: <select id="nplayer" class="py-input">
 
 :::{.board .info}
 &nbsp;&nbsp;&nbsp;
-<img class="black"></img> move: [move]{#black .py-input} total: [0]{#bcount .py-input}
-<img class="white"></img> move: [move]{#white .py-input} total: [0]{#wcount .py-input}
+<img class="black"></img> [move]{#black .py-input} total: [0]{#bcount .py-input}
+<img class="white"></img> [move]{#white .py-input} total: [0]{#wcount .py-input}
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 [{Message Area}]{#message .py-input }
+<button id="save" class="py-button">Save</button>
 :::
 
 <py-terminal id="debug"></py-terminal>
@@ -462,6 +472,9 @@ def BestMove(board, player):
 # The GUI Interface     #
 #########################
 
+# a record of board changes
+history = []
+
 # state mapping between the two versions
 state = {'empty': '0', 'black': '1', 'white': '2'}
 
@@ -486,7 +499,7 @@ def do_flip(x, y, color):
     cell(x, y).color = color
     board[y][x] = state[color] # update board with flip
     change_total(color, 1) # update color total
-    if old_color != 'empty': change_total(flip(color), -1) # update color total of opponent
+    if old_color != 'empty': change_total(old_color, -1) # update color total of opponent
     img = shape(x,y)
     # match piece with correct color
     if color == 'white':
@@ -577,6 +590,7 @@ def make_move(move):
     global board, color # for update
     if debug: print(f'move: {move} by {color} = player {state[color]}')
     say(f'{move}', color)
+    history.append(f'{color[0]} {move[0]} {move[1]}')
     count = flip_stones(move)
     if debug: PrintBoard()
     if debug: print(f'{color} flipped over {count} cells.')
@@ -591,18 +605,19 @@ def on_click(e):
         if debug: print(f'click cell id = {e.target.id}')
         x, y = [int(i) for i in e.target.id.split('_')]
         if possible_move(x, y):
-            tell('', 'white') # remove warning
+            tell('') # remove warning
             make_move((x,y))
             if nplayer == 2:
-                tell(f'Next to move: {color}')
+                tell(f'Next: {color}')
             else:
                 # AI to move
                 move = ai_move(state[color])
                 if valid_move(move):
                     make_move(move)
-                    tell(f'Next to move: {color}')
+                    tell(f'Next: {color}')
                 else:
                     tell('Game Over!', 'green')
+                    game_over()
         else:
             tell('Cell is ILLEGAL!', 'red')
 
@@ -630,12 +645,7 @@ def auto_play():
             else: # Game over
                 end = True
                 break
-
-    # tell the result
-    c1 = EvalBoard(board, '1')
-    c2 = EvalBoard(board, '2')
-    print(f'Game over for {color}! User score: {c1}, AI score: {c2}')
-    tell(f'Game over for {color}!', 'yellow')
+    game_over()
 
 # reset the game
 def reset(event): # event is ignored
@@ -669,6 +679,7 @@ def make_board():
 
 # clean the board
 def clean_board():
+    history.append(f'g {n} {n}')
     for i in range(n):
         for j in range(n):
             td = cell(j, i)
@@ -680,15 +691,74 @@ def clean_board():
             if nplayer != 0: td.addEventListener('click', create_proxy(on_click))
             board[j][i] = state['empty'] # initialize board with flip
 
-# new game
-def new_game():
-    global color
+    # delete moves and counts
+    Element('black').element.innerHTML = 'move'
+    Element('bcount').element.innerHTML = '0'
+    Element('white').element.innerHTML = 'move'
+    Element('wcount').element.innerHTML = '0'
+
+# game over
+def game_over():
+    # tell the result
+    b = int(Element('bcount').innerHtml) # Black score
+    w = int(Element('wcount').innerHtml) # White score
+    print(f'Game over,  black score: {b}, white score: {w}')
+    history.append(f'x {b} {w}')
+    if b > w: tell(f'Black wins!', 'yellow')
+    if b < w: tell(f'White wins!', 'yellow')
+    if b == w: tell(f'It is a draw!', 'yellow')
+    # disable clicks
+    for i in range(n):
+        for j in range(n):
+            td = cell(j, i)
+            td.removeEventListener('click', create_proxy(on_click))
+    return (b, w)        
+
+# stored game moves
+games = [
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4',   # games[0] = standard opening
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3',
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3,b 6 5,w 5 6,b 6 3,w 3 5',
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4'    # last one also standard
+]
+
+# play a game
+def play(game):
+    global color, history
+    history = []
     # initial game pieces
     clean_board()
-    do_flip(3, 3, 'white')
-    do_flip(4, 4, 'white')
-    do_flip(3, 4, 'black')
-    do_flip(4, 3, 'black')
+    color = 'black'
+    list = game.split(',')
+    if debug: print(f'Game: {list}')
+    for item in list:
+        c, x, y = item.split()
+        move = (int(x), int(y))
+        match c:
+           case 'g':
+              assert move == (n, n), 'Only 8x8 board'
+           case 'b':
+              assert color == 'black', 'Black should move'
+              make_move(move)
+           case 'w':
+              assert color == 'white', 'White should move'
+              make_move(move)
+           case _ :
+              b, w = game_over()
+              assert move == (b, w), 'Scores differ!'
+    tell('Continue ...')
+
+# new game
+def new_game():
+    global color, history
+    history = []
+    # initial game pieces
+    clean_board()
+    color = 'black'
+    make_move((3,4))  # black moves first
+    make_move((3,3))  # white moves second
+    make_move((4,3))
+    make_move((4,4))
 
     if debug: print('New Game Board:\n')
     if debug: PrintBoard()
@@ -699,6 +769,18 @@ def new_game():
 
     # check auto-play
     if nplayer == 0: auto_play()
+
+# get history to clipboard
+def save(event):
+    text = ','.join(history)
+    if debug: print(f'Moves: {text}')
+    temp = document.createElement('textarea')
+    temp.value = text
+    document.body.appendChild(temp)
+    temp.select() # no select if temp is hidden
+    document.execCommand('copy')
+    document.body.removeChild(temp)
+    tell('Moves in Clipboard.')
 
 # make the GUI game
 game = document.getElementById('game')
@@ -711,8 +793,13 @@ select.addEventListener('change', create_proxy(reset))
 select = document.getElementById('option')
 select.addEventListener('change', create_proxy(reset))
 
+capture = document.getElementById('save')
+capture.addEventListener('click', create_proxy(save))
+
 # start new game
 new_game()
+# play(games[1])
+
 </py-script>
 ```
 :::
