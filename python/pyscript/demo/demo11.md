@@ -59,7 +59,7 @@ include-after: |
 :::{.board .param}
 &nbsp;&nbsp;&nbsp;
 Select an algorithm: <select id="option" class="py-input">
-    <option value="0" selected>EvalBoard</option>
+    <option value="0" selected>Evaluate Board</option>
     <option value="1">Minimax</option>
     <option value="2">Minimax with &alpha;-&beta; pruning</option>
     <option value="3">Negamax</option>
@@ -196,8 +196,10 @@ def PrintBoard():
         row += str(x).zfill(m) + ' '
     print(row + ' X\n')
 
-# make a move on the board, at (x,y) by player
-def MakeMove(board, x, y, player): # assuming valid move
+# make a move (x,y) on the board by player
+# board in arg is a deepcopy of global board
+def MakeMove(board, move, player):
+    x, y = move  # assuming valid move
     total = 0 # total number of opponent pieces taken
     board[y][x] = player
     for d in range(8): # 8 directions
@@ -222,16 +224,18 @@ def MakeMove(board, x, y, player): # assuming valid move
 
         total += count
 
-    # board is modified
+    # return updated board in arg
     return (board, total)
 
 # check if move (x,y) is valid for player
-def ValidMove(board, x, y, player):
+def ValidMove(board, move, player):
+    x, y = move
     if x < 0 or x >= n or y < 0 or y >= n:
         return False
     if board[y][x] != '0':
         return False
-    _ , total = MakeMove(copy.deepcopy(board), x, y, player)
+    # ignore updated board copy in validity check     
+    _ , total = MakeMove(copy.deepcopy(board), move, player)
     return total != 0
 
 # board evaluation
@@ -256,7 +260,7 @@ def EvalBoard(board, player):
 def IsTerminalNode(board, player):
     for y in range(n):
         for x in range(n):
-            if ValidMove(board, x, y, player):
+            if ValidMove(board, (x, y), player):
                 return False
     return True
 
@@ -265,8 +269,8 @@ def GetSortedNodes(board, player):
     sortedNodes = []
     for y in range(n):
         for x in range(n):
-            if ValidMove(board, x, y, player):
-                boardTemp, _ = MakeMove(copy.deepcopy(board), x, y, player)
+            if ValidMove(board, (x, y), player):
+                boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                 sortedNodes.append((boardTemp, EvalBoard(boardTemp, player)))
     sortedNodes = sorted(sortedNodes, key = lambda node: node[1], reverse = True)
     sortedNodes = [node[0] for node in sortedNodes]
@@ -281,16 +285,16 @@ def Minimax(board, player, depth, maximizingPlayer):
         bestValue = minEvalBoard
         for y in range(n):
             for x in range(n):
-                if ValidMove(board, x, y, player):
-                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                if ValidMove(board, (x, y), player):
+                    boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                     v = Minimax(boardTemp, player, depth - 1, False)
                     bestValue = max(bestValue, v)
     else: # minimizingPlayer
         bestValue = maxEvalBoard
         for y in range(n):
             for x in range(n):
-                if ValidMove(board, x, y, player):
-                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                if ValidMove(board, (x, y), player):
+                    boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                     v = Minimax(boardTemp, player, depth - 1, True)
                     bestValue = min(bestValue, v)
     return bestValue
@@ -304,8 +308,8 @@ def AlphaBeta(board, player, depth, alpha, beta, maximizingPlayer):
         v = minEvalBoard
         for y in range(n):
             for x in range(n):
-                if ValidMove(board, x, y, player):
-                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                if ValidMove(board, (x, y), player):
+                    boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                     v = max(v, AlphaBeta(boardTemp, player, depth - 1, alpha, beta, False))
                     alpha = max(alpha, v)
                     if beta <= alpha:
@@ -315,8 +319,8 @@ def AlphaBeta(board, player, depth, alpha, beta, maximizingPlayer):
         v = maxEvalBoard
         for y in range(n):
             for x in range(n):
-                if ValidMove(board, x, y, player):
-                    (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+                if ValidMove(board, (x, y), player):
+                    boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                     v = min(v, AlphaBeta(boardTemp, player, depth - 1, alpha, beta, True))
                     beta = min(beta, v)
                     if beta <= alpha:
@@ -353,8 +357,8 @@ def Negamax(board, player, depth, color):
     bestValue = minEvalBoard
     for y in range(n):
         for x in range(n):
-            if ValidMove(board, x, y, player):
-                (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+            if ValidMove(board, (x, y), player):
+                boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                 v = -Negamax(boardTemp, player, depth - 1, -color)
                 bestValue = max(bestValue, v)
     return bestValue
@@ -366,8 +370,8 @@ def NegamaxAB(board, player, depth, alpha, beta, color):
     bestValue = minEvalBoard
     for y in range(n):
         for x in range(n):
-            if ValidMove(board, x, y, player):
-                (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+            if ValidMove(board, (x, y), player):
+                boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                 v = -NegamaxAB(boardTemp, player, depth - 1, -beta, -alpha, -color)
                 bestValue = max(bestValue, v)
                 alpha = max(alpha, v)
@@ -397,8 +401,8 @@ def Negascout(board, player, depth, alpha, beta, color):
     firstChild = True
     for y in range(n):
         for x in range(n):
-            if ValidMove(board, x, y, player):
-                (boardTemp, totctr) = MakeMove(copy.deepcopy(board), x, y, player)
+            if ValidMove(board, (x, y), player):
+                boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                 if not firstChild:
                     score = -Negascout(boardTemp, player, depth - 1, -alpha - 1, -alpha, -color)
                     if alpha < score and score < beta:
@@ -436,9 +440,8 @@ def BestMove(board, player):
     mx, my = (-1, -1)
     for y in range(n):
         for x in range(n):
-            if ValidMove(board, x, y, player):
-                boardTemp, _ = MakeMove(copy.deepcopy(board), x, y, player)
-                '''
+            if ValidMove(board, (x, y), player):
+                boardTemp, _ = MakeMove(copy.deepcopy(board), (x, y), player)
                 match option:
                     case 0: points = EvalBoard(boardTemp, player)
                     case 1: points = Minimax(boardTemp, player, depth, True)
@@ -449,23 +452,11 @@ def BestMove(board, player):
                     case 6: points = AlphaBetaSN(board, player, depth, minEvalBoard, maxEvalBoard, True)
                     case 7: points = NegamaxABSN(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
                     case 8: points = NegascoutSN(boardTemp, player, depth, minEvalBoard, maxEvalBoard, 1)
-                '''
-                points = EvalBoard(boardTemp, player)
                 if points > maxPoints:
                     maxPoints = points
                     mx, my = (x, y)
 
     return (mx, my)
-
-# Use AI algorithm for a player move
-def ai_move(player):
-    global board
-    x, y = BestMove(board, player)
-    if not (x == -1 and y == -1):
-       board, total = MakeMove(board, x, y, player)
-       print(f'AI played (X Y): {x} {y}')
-       print(f'# of pieces taken: {total}')               
-    return (x, y)
 
 #########################
 # The GUI Interface     #
@@ -499,10 +490,10 @@ def do_flip(x, y, color):
     img = shape(x,y)
     # match piece with correct color
     if color == 'white':
-        img.classList.remove('black')    
+        img.classList.remove('black')
         img.classList.add('white')
     else:
-        img.classList.remove('white')    
+        img.classList.remove('white')
         img.classList.add('black')
 
 # put a piece at neighbour of (x,y) in direction (dx, dy)
@@ -570,6 +561,16 @@ def change_total(color, amount):
     span = document.getElementById(f'{color[0]}count')
     total = int(span.innerHTML) + amount
     span.innerHTML = str(total)
+
+# Use AI algorithm for a player move
+def ai_move(player):
+    global board
+    move = BestMove(board, player)
+    if valid_move(move):
+       board, total = MakeMove(board, move, player)
+       print(f'AI played (X Y): {move}')
+       print(f'# of pieces taken: {total}')               
+    return move
 
 # make a move
 def make_move(move):
@@ -671,6 +672,10 @@ def clean_board():
     for i in range(n):
         for j in range(n):
             td = cell(j, i)
+            td.color = 'empty'
+            img = shape(j,i)
+            img.classList.remove('black')
+            img.classList.remove('white')
             td.removeEventListener('click', create_proxy(on_click))
             if nplayer != 0: td.addEventListener('click', create_proxy(on_click))
             board[j][i] = state['empty'] # initialize board with flip
