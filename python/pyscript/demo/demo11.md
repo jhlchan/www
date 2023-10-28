@@ -76,12 +76,9 @@ Number of players: <select id="nplayer" class="py-input">
 </select>
 Game: <select id="code" class="py-input">
     <option value="0" selected>New</option>
-    <option value="1">game 1</option>
-    <option value="2">game 2</option>
-    <option value="3">game 3</option>
 </select>
 
-* \# of players: 2 = black and white, 1 = black vs machine , 0 = machine vs machine.
+* Number of players: 2 = black vs white, 1 = black vs machine , 0 = machine vs machine.
 * Game moves are recorded, click "Save" to get the moves in clipboard.
 :::
 
@@ -154,8 +151,8 @@ from pyodide.ffi import create_proxy
 input = js.prompt
 
 # logging
-debug = True
-# debug = False
+# debug = True
+debug = False
 
 if not debug: document.getElementById('debug').style = 'display: none'
 
@@ -471,6 +468,7 @@ def BestMove(board, player):
 #########################
 # The GUI Interface     #
 #########################
+from time import sleep
 
 # a record of board changes
 history = []
@@ -543,8 +541,9 @@ def flip_stones(move):
     count += 1
     return count
 
-# check if a move at (x,y) is possible
-def possible_move(x, y):
+# check if a move (x,y) is possible
+def possible_move(move):
+    x, y = move
     c = cell(x, y)
     if c.color == 'empty':
         for direction in directions:
@@ -575,16 +574,6 @@ def change_total(color, amount):
     total = int(span.innerHTML) + amount
     span.innerHTML = str(total)
 
-# Use AI algorithm for a player move
-def ai_move(player):
-    global board
-    move = BestMove(board, player)
-    if valid_move(move):
-       board, total = MakeMove(board, move, player)
-       print(f'AI played (X Y): {move}')
-       print(f'# of pieces taken: {total}')               
-    return move
-
 # make a move
 def make_move(move):
     global board, color # for update
@@ -603,15 +592,15 @@ def on_click(e):
         tell('Cell is occupied!', 'pink')
     else:
         if debug: print(f'click cell id = {e.target.id}')
-        x, y = [int(i) for i in e.target.id.split('_')]
-        if possible_move(x, y):
-            tell('') # remove warning
-            make_move((x,y))
+        move = tuple(int(i) for i in e.target.id.split('_'))
+        if possible_move(move):
+            tell('Message') # remove warning
+            make_move(move)
             if nplayer == 2:
                 tell(f'Next: {color}')
             else:
                 # AI to move
-                move = ai_move(state[color])
+                move = BestMove(board, state[color])
                 if valid_move(move):
                     make_move(move)
                     tell(f'Next: {color}')
@@ -621,11 +610,14 @@ def on_click(e):
         else:
             tell('Cell is ILLEGAL!', 'red')
 
+# single proxy for add and remove listener
+click_proxy = create_proxy(on_click)
+
 # auto play the game
 def auto_play():
     global board
     print('Players: 1 = User,  2 = AI\n')
-    max = 3 # max number of steps
+    max = 100 # max number of steps
     end = False
     step = 0
     while not end:
@@ -645,16 +637,10 @@ def auto_play():
             else: # Game over
                 end = True
                 break
-    game_over()
 
-# reset the game
-def reset(event): # event is ignored
-    global nplayer, option
-    nplayer = int(Element('nplayer').value)
-    option = int(Element('option').value)
-    if debug: print(f'Number of players: {nplayer}')
-    if debug: print(f'Algorithm selected: {option}')
-    new_game()
+    tell(f'steps: {step}')
+    sleep(3)
+    game_over()
 
 # make the board cells (with flip id for consistency)
 def make_board():
@@ -687,8 +673,8 @@ def clean_board():
             img = shape(j,i)
             img.classList.remove('black')
             img.classList.remove('white')
-            td.removeEventListener('click', create_proxy(on_click))
-            if nplayer != 0: td.addEventListener('click', create_proxy(on_click))
+            td.removeEventListener('click', click_proxy)
+            if nplayer != 0: td.addEventListener('click', click_proxy)
             board[j][i] = state['empty'] # initialize board with flip
 
     # delete moves and counts
@@ -696,10 +682,11 @@ def clean_board():
     Element('bcount').element.innerHTML = '0'
     Element('white').element.innerHTML = 'move'
     Element('wcount').element.innerHTML = '0'
+    tell('Message') # clear message
 
 # game over
 def game_over():
-    # tell the result
+    # tell the result, innerHtml is read-only
     b = int(Element('bcount').innerHtml) # Black score
     w = int(Element('wcount').innerHtml) # White score
     print(f'Game over,  black score: {b}, white score: {w}')
@@ -711,16 +698,23 @@ def game_over():
     for i in range(n):
         for j in range(n):
             td = cell(j, i)
-            td.removeEventListener('click', create_proxy(on_click))
+            td.removeEventListener('click', click_proxy)
+
     return (b, w)        
 
 # stored game moves
 games = [
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4',   # games[0] = standard opening
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3',
-   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3,b 6 5,w 5 6,b 6 3,w 3 5',
-   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4'    # last one also standard
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3,b 6 5,w 5 6,b 6 3,w 3 5', 
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,x 5 5',    # autoplay 3 steps
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,b 2 3,w 2 0,b 2 1,w 2 4,b 4 5,w 5 4,b 4 2,w 0 1,b 1 4,w 0 4,b 0 2,w 4 1,b 4 0,w 0 3,b 0 5,w 5 2,b 6 3,w 0 6,b 2 5,w 6 4,b 6 5,w 7 6,b 3 1,w 3 0,b 1 3,w 7 4,b 3 5,w 3 6,b 4 6,w 5 7,b 1 5,w 5 5,b 4 7,w 5 0,b 7 2,w 5 3,b 7 3,w 7 1,b 5 1,w 5 6,b 3 7,w 2 7,b 6 2,w 6 1,b 7 0,w 2 6,b 7 5,w 6 6,b 6 7,w 7 7,b 1 7,w 6 0,b 1 6,w 0 7,x 17 47', # autoplay till end, 64 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4' # last one alos the standard, no comma
 ]
+
+# get a game
+def get_game():
+    return games[int(Element('code').value)]
 
 # play a game
 def play(game):
@@ -731,6 +725,7 @@ def play(game):
     color = 'black'
     list = game.split(',')
     if debug: print(f'Game: {list}')
+    end = False
     for item in list:
         c, x, y = item.split()
         move = (int(x), int(y))
@@ -745,8 +740,18 @@ def play(game):
               make_move(move)
            case _ :
               b, w = game_over()
+              end = True
               assert move == (b, w), 'Scores differ!'
-    tell('Continue ...')
+
+    # continue to play
+    if not end:
+        if debug: print('Continue to play:\n')
+        if debug: PrintBoard()
+        if debug: print(f'current player: {color}')
+        tell(f'Next: {color}')
+
+        # check auto-play
+        if nplayer == 0: auto_play()
 
 # new game
 def new_game():
@@ -770,6 +775,18 @@ def new_game():
     # check auto-play
     if nplayer == 0: auto_play()
 
+# reset the game
+def reset(event): # event is ignored
+    global nplayer, option
+    nplayer = int(Element('nplayer').value)
+    option = int(Element('option').value)
+    if debug: print(f'Number of players: {nplayer}')
+    if debug: print(f'Algorithm selected: {option}')
+    play(get_game())
+
+# single proxy for reset
+reset_proxy = create_proxy(reset)
+
 # get history to clipboard
 def save(event):
     text = ','.join(history)
@@ -782,23 +799,37 @@ def save(event):
     document.body.removeChild(temp)
     tell('Moves in Clipboard.')
 
+# add game options
+def add_options():
+    code = document.getElementById('code')
+    for j in range(1, len(games)):
+        option =  document.createElement('option')
+        option.innerHTML = f'Game {j}'
+        option.value = f'{j}'
+        code.appendChild(option)
+
 # make the GUI game
 game = document.getElementById('game')
 game.appendChild(make_board())
+add_options()
 
 # listen for selections
-select = document.getElementById('nplayer')
-select.addEventListener('change', create_proxy(reset))
-
 select = document.getElementById('option')
-select.addEventListener('change', create_proxy(reset))
+select.addEventListener('change', reset_proxy)
+
+select = document.getElementById('nplayer')
+select.addEventListener('change', reset_proxy)
+
+select = document.getElementById('code')
+select.addEventListener('change', reset_proxy)
 
 capture = document.getElementById('save')
 capture.addEventListener('click', create_proxy(save))
 
 # start new game
-new_game()
-# play(games[1])
+# new_game()
+# start with default game 0
+play(get_game())
 
 </py-script>
 ```
