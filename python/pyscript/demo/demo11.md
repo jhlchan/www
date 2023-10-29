@@ -35,6 +35,18 @@ header-includes: |
            border: 2px solid #484848;
            background: white;
          }
+         .b-ring {
+           border-radius: 50%;
+           height: 38px;
+           width: 38px;
+           border: 2px solid black;
+         }
+         .w-ring {
+           border-radius: 50%;
+           height: 38px;
+           width: 38px;
+           border: 2px solid white;
+         }
          .hide {
             display: none;
          }
@@ -89,9 +101,11 @@ Game: <select id="code" class="py-input">
 &nbsp;&nbsp;&nbsp;
 <img class="black"></img> [move]{#black .py-input} total: [0]{#bcount .py-input}
 <img class="white"></img> [move]{#white .py-input} total: [0]{#wcount .py-input}
+<button id="back" class="py-button">◀</button>
+<button id="step" class="py-button">▶</button>
+<button id="save" class="py-button">Save</button>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 [{Message Area}]{#message .py-input }
-<button id="save" class="py-button">Save</button>
 :::
 
 <py-terminal id="debug"></py-terminal>
@@ -472,6 +486,8 @@ from time import sleep
 
 # a record of board changes
 history = []
+# a book of moves for back and step
+book = []
 
 # state mapping between the two versions
 state = {'empty': '0', 'black': '1', 'white': '2'}
@@ -588,6 +604,11 @@ def make_move(move):
 
 # handle click on a cell
 def on_click(e):
+    global book, bRing, wRing
+    book = [] # any click will discard the book, keeping history only
+    if bRing != None: bRing.classList.remove('b-ring')
+    if wRing != None: wRing.classList.remove('w-ring')
+    bRing = wRing = None
     if e.target.id.startswith('img'):
         tell('Cell is occupied!', 'pink')
     else:
@@ -616,13 +637,13 @@ click_proxy = create_proxy(on_click)
 # auto play the game
 def auto_play():
     global board
-    print('Players: 1 = User,  2 = AI\n')
-    max = 100 # max number of steps
+    if debug: print('Players: 1 = User,  2 = AI\n')
+    max = 100 # max number of steps, exceeding n * n // 2 = 8*8/2 = 32
     end = False
     step = 0
     while not end:
         step += 1
-        print(f'auto_play: step = {step}')
+        if debug: print(f'auto_play: step = {step}')
         end = (step == max)
         for color in ['black', 'white']:
             tell(f'PLAYER: {color}', 'yellow')
@@ -639,7 +660,6 @@ def auto_play():
                 break
 
     tell(f'steps: {step}')
-    sleep(3)
     game_over()
 
 # make the board cells (with flip id for consistency)
@@ -673,6 +693,8 @@ def clean_board():
             img = shape(j,i)
             img.classList.remove('black')
             img.classList.remove('white')
+            img.classList.remove('b-ring')
+            img.classList.remove('w-ring')
             td.removeEventListener('click', click_proxy)
             if nplayer != 0: td.addEventListener('click', click_proxy)
             board[j][i] = state['empty'] # initialize board with flip
@@ -708,13 +730,40 @@ games = [
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3',
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3,b 6 5,w 5 6,b 6 3,w 3 5', 
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,x 5 5',    # autoplay 3 steps
-   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,b 2 3,w 2 0,b 2 1,w 2 4,b 4 5,w 5 4,b 4 2,w 0 1,b 1 4,w 0 4,b 0 2,w 4 1,b 4 0,w 0 3,b 0 5,w 5 2,b 6 3,w 0 6,b 2 5,w 6 4,b 6 5,w 7 6,b 3 1,w 3 0,b 1 3,w 7 4,b 3 5,w 3 6,b 4 6,w 5 7,b 1 5,w 5 5,b 4 7,w 5 0,b 7 2,w 5 3,b 7 3,w 7 1,b 5 1,w 5 6,b 3 7,w 2 7,b 6 2,w 6 1,b 7 0,w 2 6,b 7 5,w 6 6,b 6 7,w 7 7,b 1 7,w 6 0,b 1 6,w 0 7,x 17 47', # autoplay till end, 64 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,b 2 3,w 2 0,b 2 1,w 2 4,b 4 5,w 5 4,b 4 2,w 0 1,b 1 4,w 0 4,b 0 2,w 4 1,b 4 0,w 0 3,b 0 5,w 5 2,b 6 3,w 0 6,b 2 5,w 6 4,b 6 5,w 7 6,b 3 1,w 3 0,b 1 3,w 7 4,b 3 5,w 3 6,b 4 6,w 5 7,b 1 5,w 5 5,b 4 7,w 5 0,b 7 2,w 5 3,b 7 3,w 7 1,b 5 1,w 5 6,b 3 7,w 2 7,b 6 2,w 6 1,b 7 0,w 2 6,b 7 5,w 6 6,b 6 7,w 7 7,b 1 7,w 6 0,b 1 6,w 0 7,x 17 47', # autoplay till end, 31 moves
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4' # last one alos the standard, no comma
 ]
 
 # get a game
 def get_game():
-    return games[int(Element('code').value)]
+    return games[int(Element('code').value)].split(',')
+
+# only two rings at any time
+bRing = wRing = None
+
+# anticipate moves if there is a book
+def show_next():
+    global bRing, wRing
+    if len(history) < len(book):
+        # show black ring
+        item = book[len(history)]
+        c, x, y = item.split()
+        if c == 'x': return game_over()
+        assert c == 'b', 'first move should be black'
+        d = shape(x,y)
+        d.classList.add(f'{c}-ring')
+        if bRing != None: bRing.classList.remove('b-ring')
+        bRing = d
+        # show white ring
+        item = book[len(history) + 1]
+        c, x, y = item.split()
+        assert c == 'w', 'next move should be white'
+        d = shape(x,y)
+        d.classList.add(f'{c}-ring')
+        if wRing != None: wRing.classList.remove('w-ring')
+        wRing = d
+    else:
+        bRing = wRing = None
 
 # play a game
 def play(game):
@@ -723,10 +772,9 @@ def play(game):
     # initial game pieces
     clean_board()
     color = 'black'
-    list = game.split(',')
-    if debug: print(f'Game: {list}')
+    if debug: print(f'Game: {game}')
     end = False
-    for item in list:
+    for item in game:
         c, x, y = item.split()
         move = (int(x), int(y))
         match c:
@@ -750,10 +798,47 @@ def play(game):
         if debug: print(f'current player: {color}')
         tell(f'Next: {color}')
 
-        # check auto-play
-        if nplayer == 0: auto_play()
+# go back by book
+def go_back(event): # event is ignored
+    global bRing, wRing
+    if len(history) == 5:
+        tell('No back!', 'magenta')
+        # bRing = wRing = None
+        return
+    tell('go back')
+    global book
+    if book == []: book = copy.deepcopy(history)
+    # assume nplayer = 1 for now, back two steps
+    move2 = history.pop()
+    # check end game
+    c, x, y = move2.split()
+    if c == 'x': move2 = history.pop() # ignore x and pop white
+    move1 = history.pop() # pop black
+    play(history)
+    show_next()
 
-# new game
+# go step by book
+def go_step(event): # event is ignored
+    global bRing, wRing
+    if not len(history) < len(book):
+        tell('No step!', 'magenta')
+        bRing = wRing = None
+        return
+    # assume nplayer = 1 for now, has been back two steps
+    tell('go step')
+    item = book[len(history)]
+    c, x, y = item.split()
+    if debug: print(f'first move: {c} {x} {y}')
+    assert color[0] == c, f'Wrong first player {c} for {color}?'
+    make_move((int(x),int(y)))
+    item = book[len(history)] # history has advanced
+    c, x, y = item.split()
+    if debug: print(f'second move: {c} {x} {y}')
+    assert color[0] == c, f'Wrong second player {c} for {color}?'
+    make_move((int(x),int(y)))
+    show_next()
+
+# new game (not being called now)
 def new_game():
     global color, history
     history = []
@@ -777,18 +862,22 @@ def new_game():
 
 # reset the game
 def reset(event): # event is ignored
-    global nplayer, option
+    global nplayer, option, bRing, wRing
     nplayer = int(Element('nplayer').value)
     option = int(Element('option').value)
+    bRing = wRing = None
     if debug: print(f'Number of players: {nplayer}')
     if debug: print(f'Algorithm selected: {option}')
     play(get_game())
+    # check auto-play
+    if nplayer == 0: auto_play()
+
 
 # single proxy for reset
 reset_proxy = create_proxy(reset)
 
 # get history to clipboard
-def save(event):
+def save(event): # event is ignored
     text = ','.join(history)
     if debug: print(f'Moves: {text}')
     temp = document.createElement('textarea')
@@ -823,8 +912,15 @@ select.addEventListener('change', reset_proxy)
 select = document.getElementById('code')
 select.addEventListener('change', reset_proxy)
 
+# listen for buttons
 capture = document.getElementById('save')
 capture.addEventListener('click', create_proxy(save))
+
+btnBack = document.getElementById('back')
+btnBack.addEventListener('click', create_proxy(go_back))
+
+btnStep = document.getElementById('step')
+btnStep.addEventListener('click', create_proxy(go_step))
 
 # start new game
 # new_game()
