@@ -55,6 +55,7 @@ header-includes: |
          }
          .info {
             background: lavender;
+            font-size: 20px;
          }
     </style>
 include-after: |
@@ -99,8 +100,8 @@ Game: <select id="code" class="py-input">
 
 :::{.board .info}
 &nbsp;&nbsp;&nbsp;
-<img class="black"></img> [move]{#black .py-input} total: [0]{#bcount .py-input}
-<img class="white"></img> [move]{#white .py-input} total: [0]{#wcount .py-input}
+<img class="black"></img> total: [0]{#bcount .py-input}
+<img class="white"></img> total: [0]{#wcount .py-input}
 <button id="back" class="py-button">◀</button>
 <button id="step" class="py-button">▶</button>
 <button id="save" class="py-button">Save</button>
@@ -574,11 +575,6 @@ def valid_move(move):
 # message area
 message = document.getElementById('message')
 
-# to say something to target
-def say(something, target):
-    where = document.getElementById(target)
-    where.innerHTML = something
-
 # give tell someting with color
 def tell(something, color = 'white'):
     message.innerHTML = something
@@ -594,7 +590,6 @@ def change_total(color, amount):
 def make_move(move):
     global board, color # for update
     if debug: print(f'move: {move} by {color} = player {state[color]}')
-    say(f'{move}', color)
     history.append(f'{color[0]} {move[0]} {move[1]}')
     count = flip_stones(move)
     if debug: PrintBoard()
@@ -604,11 +599,10 @@ def make_move(move):
 
 # handle click on a cell
 def on_click(e):
-    global book, bRing, wRing
+    global book, ring
     book = [] # any click will discard the book, keeping history only
-    if bRing != None: bRing.classList.remove('b-ring')
-    if wRing != None: wRing.classList.remove('w-ring')
-    bRing = wRing = None
+    remove_ring()
+    ring = None
     if e.target.id.startswith('img'):
         tell('Cell is occupied!', 'pink')
     else:
@@ -700,9 +694,7 @@ def clean_board():
             board[j][i] = state['empty'] # initialize board with flip
 
     # delete moves and counts
-    Element('black').element.innerHTML = 'move'
     Element('bcount').element.innerHTML = '0'
-    Element('white').element.innerHTML = 'move'
     Element('wcount').element.innerHTML = '0'
     tell('Message') # clear message
 
@@ -738,32 +730,59 @@ games = [
 def get_game():
     return games[int(Element('code').value)].split(',')
 
-# only two rings at any time
-bRing = wRing = None
+# only one ring at any time
+ring = None
 
-# anticipate moves if there is a book
+# remove ring
+def remove_ring():
+    if ring != None: # remove whatever color
+        ring.classList.remove('b-ring')
+        ring.classList.remove('w-ring')
+
+# go back by book
+def go_back(event): # event is ignored
+    if len(history) == 5:
+        tell('No more back!', 'magenta')
+        return
+    if debug: print('go back')
+    global book
+    if book == []: book = copy.deepcopy(history)
+    # back one steps
+    item = history.pop()
+    c, x, y = item.split()
+    # check end game
+    if c == 'x': item = history.pop() # ignore x and pop another
+    play(history)
+    show_next()
+
+# go step by book
+def go_step(event): # event is ignored
+    global ring
+    if not len(history) < len(book):
+        tell('No more step!', 'magenta')
+        ring = None
+        return
+    if debug: print('go step')
+    item = book[len(history)]
+    c, x, y = item.split()
+    remove_ring()
+    make_move((int(x),int(y)))
+    show_next()
+
+# anticipate next move if there is a book
 def show_next():
-    global bRing, wRing
+    remove_ring()
+    global ring
     if len(history) < len(book):
-        # show black ring
+        # show ring
         item = book[len(history)]
         c, x, y = item.split()
         if c == 'x': return game_over()
-        assert c == 'b', 'first move should be black'
         d = shape(x,y)
         d.classList.add(f'{c}-ring')
-        if bRing != None: bRing.classList.remove('b-ring')
-        bRing = d
-        # show white ring
-        item = book[len(history) + 1]
-        c, x, y = item.split()
-        assert c == 'w', 'next move should be white'
-        d = shape(x,y)
-        d.classList.add(f'{c}-ring')
-        if wRing != None: wRing.classList.remove('w-ring')
-        wRing = d
+        ring = d
     else:
-        bRing = wRing = None
+        ring = None
 
 # play a game
 def play(game):
@@ -798,46 +817,6 @@ def play(game):
         if debug: print(f'current player: {color}')
         tell(f'Next: {color}')
 
-# go back by book
-def go_back(event): # event is ignored
-    global bRing, wRing
-    if len(history) == 5:
-        tell('No back!', 'magenta')
-        # bRing = wRing = None
-        return
-    tell('go back')
-    global book
-    if book == []: book = copy.deepcopy(history)
-    # assume nplayer = 1 for now, back two steps
-    move2 = history.pop()
-    # check end game
-    c, x, y = move2.split()
-    if c == 'x': move2 = history.pop() # ignore x and pop white
-    move1 = history.pop() # pop black
-    play(history)
-    show_next()
-
-# go step by book
-def go_step(event): # event is ignored
-    global bRing, wRing
-    if not len(history) < len(book):
-        tell('No step!', 'magenta')
-        bRing = wRing = None
-        return
-    # assume nplayer = 1 for now, has been back two steps
-    tell('go step')
-    item = book[len(history)]
-    c, x, y = item.split()
-    if debug: print(f'first move: {c} {x} {y}')
-    assert color[0] == c, f'Wrong first player {c} for {color}?'
-    make_move((int(x),int(y)))
-    item = book[len(history)] # history has advanced
-    c, x, y = item.split()
-    if debug: print(f'second move: {c} {x} {y}')
-    assert color[0] == c, f'Wrong second player {c} for {color}?'
-    make_move((int(x),int(y)))
-    show_next()
-
 # new game (not being called now)
 def new_game():
     global color, history
@@ -862,10 +841,10 @@ def new_game():
 
 # reset the game
 def reset(event): # event is ignored
-    global nplayer, option, bRing, wRing
+    global nplayer, option, ring
     nplayer = int(Element('nplayer').value)
     option = int(Element('option').value)
-    bRing = wRing = None
+    ring = None
     if debug: print(f'Number of players: {nplayer}')
     if debug: print(f'Algorithm selected: {option}')
     play(get_game())
