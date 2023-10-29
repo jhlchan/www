@@ -69,9 +69,20 @@ include-after: |
 
 ## Othello{#header .header}
 
-:::{.board .param}
+::::{.board .param}
 &nbsp;&nbsp;&nbsp;
-Pick algorithm: <select id="option" class="py-input">
+Number of players: <select id="nplayer" class="py-input">
+    <option value="2" selected>2</option>
+    <option value="1">1</option>
+    <option value="0">0</option>
+</select>
+Game: <select id="code" class="py-input">
+    <option value="0" selected>New</option>
+</select>
+
+:::{#algo .hide}
+&nbsp;&nbsp;&nbsp;
+Pick an algorithm: <select id="option" class="py-input">
     <option value="0" selected>Evaluate Board</option>
     <option value="1">Minimax</option>
     <option value="2">Minimax with &alpha;-&beta; pruning</option>
@@ -82,18 +93,20 @@ Pick algorithm: <select id="option" class="py-input">
     <option value="7">Negamax &alpha;-&beta; with sorted nodes</option>
     <option value="8">Negascout with sorted nodes</option>
 </select>
-Number of players: <select id="nplayer" class="py-input">
-    <option value="2" selected>2</option>
-    <option value="1">1</option>
-    <option value="0">0</option>
+Choose depth: <select id="depth" class="py-input">
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
 </select>
-Game: <select id="code" class="py-input">
-    <option value="0" selected>New</option>
-</select>
-
+:::
 * Number of players: 2 = black vs white, 1 = black vs machine , 0 = machine vs machine.
 * Game moves are recorded, click "Save" to get the moves in clipboard.
-:::
+::::
 
 :::{#game .board }
 :::
@@ -179,6 +192,7 @@ nplayer = 2   # game just checks valid move
 
 # option for algorithm
 option = 0    # EvalBoard
+depth = 1     # default depth
 
 #########################
 # The AI move algorithm #
@@ -637,6 +651,7 @@ def auto_play():
     step = 0
     while not end:
         step += 1
+        tell(f'auto_play: step = {step}', 'yellow')
         if debug: print(f'auto_play: step = {step}')
         end = (step == max)
         for color in ['black', 'white']:
@@ -722,7 +737,12 @@ games = [
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3',
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 4 5,w 5 5,b 5 4,w 5 3,b 6 5,w 5 6,b 6 3,w 3 5', 
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,x 5 5',    # autoplay 3 steps
-   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,b 2 3,w 2 0,b 2 1,w 2 4,b 4 5,w 5 4,b 4 2,w 0 1,b 1 4,w 0 4,b 0 2,w 4 1,b 4 0,w 0 3,b 0 5,w 5 2,b 6 3,w 0 6,b 2 5,w 6 4,b 6 5,w 7 6,b 3 1,w 3 0,b 1 3,w 7 4,b 3 5,w 3 6,b 4 6,w 5 7,b 1 5,w 5 5,b 4 7,w 5 0,b 7 2,w 5 3,b 7 3,w 7 1,b 5 1,w 5 6,b 3 7,w 2 7,b 6 2,w 6 1,b 7 0,w 2 6,b 7 5,w 6 6,b 6 7,w 7 7,b 1 7,w 6 0,b 1 6,w 0 7,x 17 47', # autoplay till end, 31 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,b 2 3,w 2 0,b 2 1,w 2 4,b 4 5,w 5 4,b 4 2,w 0 1,b 1 4,w 0 4,b 0 2,w 4 1,b 4 0,w 0 3,b 0 5,w 5 2,b 6 3,w 0 6,b 2 5,w 6 4,b 6 5,w 7 6,b 3 1,w 3 0,b 1 3,w 7 4,b 3 5,w 3 6,b 4 6,w 5 7,b 1 5,w 5 5,b 4 7,w 5 0,b 7 2,w 5 3,b 7 3,w 7 1,b 5 1,w 5 6,b 3 7,w 2 7,b 6 2,w 6 1,b 7 0,w 2 6,b 7 5,w 6 6,b 6 7,w 7 7,b 1 7,w 6 0,b 1 6,w 0 7,x 17 47', # autoplay EvalBoard till end, 32 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 4 2,b 5 2,w 4 1,b 5 5,w 0 2,b 4 0,w 5 0,b 3 0,w 2 0,b 2 1,w 4 5,b 0 3,w 1 0,b 0 1,w 6 1,b 7 0,w 7 2,b 1 1,w 0 0,b 3 1,w 0 4,b 5 1,w 2 3,b 7 1,w 5 3,b 7 3,w 6 5,b 6 6,w 1 3,b 6 0,w 6 2,b 6 3,w 6 4,b 1 4,w 1 5,b 2 4,w 2 5,b 0 6,w 7 4,b 7 5,w 0 5,b 1 6,w 0 7,b 5 4,w 7 6,b 3 6,w 7 7,b 3 5,w 2 6,b 1 7,w 4 6,b 3 7,w 5 6,b 2 7,w 4 7,b 6 7,w 5 7,x 17 47', # autoplay Minimax depth = 1, 32 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 4 2,b 5 2,w 4 1,b 3 0,w 4 0,b 5 0,w 6 1,b 7 0,w 0 2,b 2 3,w 6 2,b 0 1,w 6 0,b 7 2,w 0 0,b 1 1,w 2 0,b 1 0,w 4 5,b 1 3,w 2 1,b 2 5,w 5 4,b 5 5,w 6 6,b 3 1,w 0 3,b 1 4,w 2 4,b 5 6,w 6 7,b 7 7,w 6 5,b 7 6,w 5 1,b 1 5,w 7 1,b 3 5,w 5 3,b 7 3,w 7 4,b 5 7,w 0 5,b 0 6,w 6 4,b 7 5,w 6 3,b 0 4,w 1 6,b 0 7,w 4 6,b 4 7,w 2 6,b 2 7,w 3 6,b 3 7,w 1 7,x 43 21', # autoplay Minimax depth = 2, 32 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 3 1,b 4 0,w 3 0,b 2 1,w 0 3,b 2 0,w 4 2,b 5 2,w 1 0,b 0 2,w 0 1,b 0 0,w 4 1,b 0 4,w 1 1,b 5 1,w 6 1,b 7 0,w 5 3,b 1 3,w 5 0,b 6 2,w 6 0,b 6 4,w 2 3,b 2 4,w 7 1,b 7 3,w 7 2,b 4 5,w 1 5,b 1 4,w 0 5,b 6 3,w 5 4,b 2 5,w 3 5,b 5 5,w 7 5,b 7 4,w 4 6,b 0 6,w 5 6,b 4 7,w 6 5,b 5 7,w 3 7,b 3 6,w 2 7,b 2 6,w 1 7,b 1 6,w 6 7,b 6 6,w 7 6,b 7 7,x 46 17', # autoplay Minimax depth = 3, 31 moves, one corner becomes impossible
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 2 3,w 0 2,b 0 0,w 2 4,b 0 1,w 2 1,b 1 3,w 2 0,b 1 0,w 3 1,b 4 0,w 1 4,b 3 5,w 4 6,b 0 3,w 3 0,b 4 1,w 5 0,b 6 0,w 4 2,b 0 5,w 0 4,b 5 3,w 5 1,b 6 1,w 5 2,b 6 2,w 7 0,b 7 1,w 7 2,b 7 3,w 6 3,b 1 5,w 7 4,b 5 4,w 2 5,b 6 4,w 6 5,b 6 6,w 5 5,b 1 6,w 0 7,b 2 6,w 1 7,b 3 7,w 7 5,b 5 6,w 4 5,b 0 6,w 4 7,b 6 7,w 3 6,b 7 6,w 2 7,b 5 7,w 7 7,x 39 25', # autoplay Minimax depth = 4, 32 moves
+   'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4,b 3 2,w 2 2,b 1 2,w 1 1,b 1 0,w 0 0,b 2 3,w 2 0,b 2 1,w 3 1,b 3 0,w 4 0,b 0 1,w 0 2,b 5 4,w 4 1,b 5 0,w 6 0,x 10 12', # autoplay Minimax α-β depth = 1
    'g 8 8,b 3 4,w 3 3,b 4 3,w 4 4' # last one alos the standard, no comma
 ]
 
@@ -839,11 +859,21 @@ def new_game():
     # check auto-play
     if nplayer == 0: auto_play()
 
+# pick algorithm and depth
+def pick_algo(flag):
+    div = document.getElementById('algo')
+    if flag:
+       div.classList.remove('hide')
+    else:   
+       div.classList.add('hide')
+
 # reset the game
 def reset(event): # event is ignored
-    global nplayer, option, ring
+    global nplayer, option, depth, ring
     nplayer = int(Element('nplayer').value)
+    pick_algo(nplayer != 2)
     option = int(Element('option').value)
+    depth = int(Element('depth').value)
     ring = None
     if debug: print(f'Number of players: {nplayer}')
     if debug: print(f'Algorithm selected: {option}')
@@ -871,10 +901,10 @@ def save(event): # event is ignored
 def add_options():
     code = document.getElementById('code')
     for j in range(1, len(games)):
-        option =  document.createElement('option')
-        option.innerHTML = f'Game {j}'
-        option.value = f'{j}'
-        code.appendChild(option)
+        opt = document.createElement('option')
+        opt.innerHTML = f'Game {j}'
+        opt.value = f'{j}'
+        code.appendChild(opt)
 
 # make the GUI game
 game = document.getElementById('game')
@@ -882,13 +912,16 @@ game.appendChild(make_board())
 add_options()
 
 # listen for selections
-select = document.getElementById('option')
-select.addEventListener('change', reset_proxy)
-
 select = document.getElementById('nplayer')
 select.addEventListener('change', reset_proxy)
 
 select = document.getElementById('code')
+select.addEventListener('change', reset_proxy)
+
+select = document.getElementById('option')
+select.addEventListener('change', reset_proxy)
+
+select = document.getElementById('depth')
 select.addEventListener('change', reset_proxy)
 
 # listen for buttons
