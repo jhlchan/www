@@ -79,6 +79,8 @@ Number of players: <select id="nplayer" class="py-input">
 Game: <select id="code" class="py-input">
     <option value="0" selected>New</option>
 </select>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<button id="start" class="py-button">Play</button>
 
 :::{#algo .hide}
 &nbsp;&nbsp;&nbsp;
@@ -93,6 +95,7 @@ Pick an algorithm: <select id="option" class="py-input">
     <option value="7">Negamax &alpha;-&beta; with sorted nodes</option>
     <option value="8">Negascout with sorted nodes</option>
 </select>
+<span id="level" class="hide">
 Choose depth: <select id="depth" class="py-input">
     <option value="1" selected>1</option>
     <option value="2">2</option>
@@ -103,6 +106,7 @@ Choose depth: <select id="depth" class="py-input">
     <option value="7">7</option>
     <option value="8">8</option>
 </select>
+</span>
 :::
 * Number of players: 2 = black vs white, 1 = black vs machine , 0 = machine vs machine.
 * Game moves are recorded, click "Save" to get the moves in clipboard.
@@ -859,13 +863,22 @@ def new_game():
     # check auto-play
     if nplayer == 0: auto_play()
 
-# pick algorithm and depth
+# pick algorithm
 def pick_algo(flag):
-    div = document.getElementById('algo')
+    element = document.getElementById('algo')
     if flag:
-       div.classList.remove('hide')
+       element.classList.remove('hide')
     else:   
-       div.classList.add('hide')
+       element.classList.add('hide')
+    pick_depth(Element('option').value != '0')   
+
+# pick depth for algorithm
+def pick_depth(flag):
+    element = document.getElementById('level')
+    if flag:
+       element.classList.remove('hide')
+    else:   
+       element.classList.add('hide')
 
 # reset the game
 def reset(event): # event is ignored
@@ -881,9 +894,10 @@ def reset(event): # event is ignored
     # check auto-play
     if nplayer == 0: auto_play()
 
-
-# single proxy for reset
-reset_proxy = create_proxy(reset)
+# more selections if nplayer changes
+def more_select(event): # event is ignored
+    nplayer = int(Element('nplayer').value)
+    pick_algo(nplayer != 2)
 
 # get history to clipboard
 def save(event): # event is ignored
@@ -913,18 +927,15 @@ add_options()
 
 # listen for selections
 select = document.getElementById('nplayer')
-select.addEventListener('change', reset_proxy)
-
-select = document.getElementById('code')
-select.addEventListener('change', reset_proxy)
+select.addEventListener('change', create_proxy(more_select))
 
 select = document.getElementById('option')
-select.addEventListener('change', reset_proxy)
-
-select = document.getElementById('depth')
-select.addEventListener('change', reset_proxy)
+select.addEventListener('change', create_proxy(pick_depth))
 
 # listen for buttons
+start = document.getElementById('start')
+start.addEventListener('click', create_proxy(reset))
+
 capture = document.getElementById('save')
 capture.addEventListener('click', create_proxy(save))
 
