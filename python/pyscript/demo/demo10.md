@@ -14,6 +14,13 @@ header-includes: |
           margin: auto;
           width: 80%;
         }
+        .picture {
+          border: 1px solid pink;
+          border-radius: 25px;
+          margin: auto;
+          width: 1000px;
+          height: 1000px;
+        }
         .hide {
             display: none;
         }
@@ -85,8 +92,10 @@ Pen from small center: <select id="radius-pen" class="py-input">
 <button id="stopButton" class="py-button" py-click="stopit()">Stop</button>
 :::
 
-:::{#canvas .board}
+::::{.board}
+:::{#canvas .picture}
 :::
+::::
 
 <!-- template of spirograph program, supply R, r, d lines as prefix -->
 :::{#code .hide}
@@ -98,7 +107,8 @@ import math
 
 # Create a turtle screen
 window = turtle.Screen()
-window.bgcolor("white")
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
 
 # Create a turtle
 t = turtle.Turtle()
@@ -114,6 +124,81 @@ t.color("#AA00AA")
 n = r // math.gcd(R, r)
 # print(f'R = {R}, r = {r}, d = {d}, n = {n}') # Skulpt is not yet Python 3 with f-formating
 print('R = %d, r = %d, d = %d, n = %d' % (R, r, d, n))
+
+scale = 2 # make this a float in Skulpt, scale = 1000/500
+
+# Function to draw a cycloid
+def draw_cycloid():
+    for angle in range(0, n * 360 + 1):  # add 1 to close a little gap
+        radian_angle = math.radians(angle)
+        x = (R - r) * math.cos(radian_angle) + d * math.cos((R - r) * radian_angle / r)
+        y = (R - r) * math.sin(radian_angle) - d * math.sin((R - r) * radian_angle / r)
+        x = scale * x
+        y = scale * y
+        t.goto(x, y)
+
+# Position the turtle at the starting point
+t.penup()
+t.goto(scale * (R - r + d), 0)
+t.pendown()
+
+# Animate the drawing of the cycloid
+draw_cycloid()
+t.hideturtle()
+```
+:::
+
+
+<!--
+To test Skulpt, use:
+https://trinket.io/turtle
+
+and restore main.py after changes:
+
+import turtle
+
+def draw_circle(turtle, color, size, x, y):
+    turtle.penup()
+    turtle.color(color)
+    turtle.fillcolor(color)
+    turtle.goto(x,y)
+    turtle.begin_fill()
+    turtle.circle(size)
+    turtle.end_fill()
+    turtle.pendown()
+
+tommy = turtle.Turtle()
+tommy.shape("turtle")
+tommy.speed(500)
+
+draw_circle(tommy, "green", 50, 25, 0)
+draw_circle(tommy, "blue", 50, 0, 0)
+draw_circle(tommy, "yellow", 50, -25, 0)
+
+See also:
+Skulpt Turtle API Documentaion
+https://python-online.ch/pyonline/progs/doc/skulptturtle.pdf
+
+>>>
+
+import turtle
+import math
+
+# Create a turtle screen
+window = turtle.Screen()
+window.bgcolor("white")
+window.setup(400, 400) # the default
+# window.setup(width=400, height=400)
+
+t = turtle.Turtle()
+t.speed(0)  # Set the drawing speed to the maximum
+t.pensize(3)
+t.color("#AA00AA")
+
+R = 100
+r = 30
+d = 100
+n = 3 # r // math.gcd(R, r)
 
 # Function to draw a cycloid
 def draw_cycloid():
@@ -131,8 +216,7 @@ t.pendown()
 # Animate the drawing of the cycloid
 draw_cycloid()
 t.hideturtle()
-```
-:::
+-->
 
 <textarea id="code1" cols="80" rows="10" class="hide">
 # Python Turtle - Spirograph - www.101computing.net/python-turtle-spirograph/
@@ -400,6 +484,31 @@ function sk_check(x) {
 function sk_get(x) {
     return Sk.builtinFiles["files"][x]
 }
+
+// Customizing modules after import
+// see: https://skulpt.org/using.html
+Sk.onAfterImport = function(library) {
+  switch(library) {
+    case 'pygal':
+      // make charts render instantly
+      Highcharts.setOptions({
+        plotOptions: {
+          series: {
+            animation: false
+          }
+        }
+      });
+      break;
+    case 'turtle':
+      // make turtle draw instantly
+      Sk.tg.defaults.animate = false;
+      Sk.tg.Turtle.prototype.speed = function() {}
+      Sk.tg.Turtle.prototype.delay = function() {}
+      break;
+  }
+}
+// not really for turtle, need to investigate.
+
 </script>
 ```
 
@@ -462,6 +571,11 @@ def builtinRead(x):
 # then the JavaScript function receives one argument which is a JavaScript object {a : 2, b : 3}.
 Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfunTakesPrompt = True,) # Yes! this works!
 # Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfun=create_proxy(inf), inputfunTakesPrompt = True,) # Yes! this works!
+
+# Skulpt canvas setting (no scaling of turtle)
+Sk.TurtleGraphics.width = 500
+Sk.TurtleGraphics.height = 500
+# these two lines has no effect!
 
 # get a program from selection
 def get_program():
