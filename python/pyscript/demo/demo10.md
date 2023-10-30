@@ -15,8 +15,6 @@ header-includes: |
           width: 80%;
         }
         .picture {
-          border: 1px solid pink;
-          border-radius: 25px;
           margin: auto;
           width: 1000px;
           height: 1000px;
@@ -71,12 +69,12 @@ From Python 3.5 onwards, there is `math.gcd(x,y)` to compute the `gcd` function 
 
 :::{.board .param}
 &nbsp;&nbsp;&nbsp;
-Radius of big circle: <select id="radius-big" class="py-input">
+Big circle radius: <select id="radius-big" class="py-input">
     <option value="100" selected>100</option>
     <option value="125">125</option>
     <option value="150">150</option>
 </select>
-Radius of small circle: <select id="radius-small" class="py-input">
+Small circle radius: <select id="radius-small" class="py-input">
     <option value="30" selected>30</option>
     <option value="75">75</option>
     <option value="85">85</option>
@@ -86,9 +84,9 @@ Pen from small center: <select id="radius-pen" class="py-input">
     <option value="125">125</option>
     <option value="150">150</option>
 </select>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input id="circle" type="checkbox" class="py-input"/>show circles
+<input id="scale" type="checkbox" class="py-input" checked/>scale to fit 
 <button id="runButton" class="py-button" py-click="runit()">Draw</button>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <button id="stopButton" class="py-button" py-click="stopit()">Stop</button>
 :::
 
@@ -103,7 +101,8 @@ Pen from small center: <select id="radius-pen" class="py-input">
 # Cycloid by ChatGPT (corrected version)
 
 import turtle
-import math
+from math import radians, pi, sin, cos, gcd
+from time import sleep
 
 # Create a turtle screen
 window = turtle.Screen()
@@ -121,33 +120,112 @@ t.color("#AA00AA")
 # r = 30,  Radius of the rolling circle
 # d = 100, Distance from the center of the rolling circle to the tracing point
 # n = 3,   number of rounds. (R - r)/r = 70/30 = 7/3, so n = 3 = 30/10, where 10 = gcd(70,30)
-n = r // math.gcd(R, r)
+n = r // gcd(R, r)
 # print(f'R = {R}, r = {r}, d = {d}, n = {n}') # Skulpt is not yet Python 3 with f-formating
 print('R = %d, r = %d, d = %d, n = %d' % (R, r, d, n))
+# other controls
+print('scale = %f, show circle flag = %r' % (scale, flag))
 
-scale = 2 # make this a float in Skulpt, scale = 1000/500
+# Spirograph drawing with circles
+def show_spiro():
+    # big circle is fixed
+    spiro = turtle.Turtle()
+    spiro.speed(0)
+    spiro.color('black')
+    spiro.pensize(2)
+    spiro.penup()
+    spiro.goto(0,-R * scale)
+    spiro.pendown()
+    spiro.circle(scale * R)
+    spiro.hideturtle()
 
-# Function to draw a cycloid
-def draw_cycloid():
+    # small circle rotates inside
+    wheel = turtle.Turtle()
+    wheel.hideturtle()
+    wheel.tracer(0)
+    wheel.speed(0)
+    wheel.color("#222222")
+    wheel.pensize(2)
+
+    # parameters
+    # R = 125   # spirograph big radius
+    # r = 75    # wheel small radius
+    # d = 125   # pen from centre of wheel
+    # n = number of rounds = r / gcd(R, r)
+    # f = 1 # for r = 75
+    # f = 8 # for r = 85, how to compute f, the number of repeats for steps?
+
+    # initial positions
+    t.penup()
+    t.goto(scale * (R - r + d), 0)
+    t.pendown()
+
+    angle = 0
+    theta = 0.2   # angle increment
+    steps = int(n * 2 * pi/theta)
+    
+    for _ in range(0,steps):
+        wheel.clear()
+        angle += theta
+        
+        a, b = (R - r), 1.0 * (R - r)/r # make this a float for Skulpt
+
+        x = a * cos(angle)
+        y = a * sin(angle)
+        wheel.penup()
+        wheel.goto(scale * x, scale * (y - r))
+        wheel.pendown()
+        wheel.circle(scale * r)
+        wheel.penup()
+
+        wheel.goto(scale * x, scale * y)
+        wheel.dot(5)
+        
+        x = a * cos(angle) + d * cos(b * angle)
+        y = a * sin(angle) - d * sin(b * angle)
+        wheel.pendown()
+        wheel.goto(scale * x, scale *y)
+        wheel.dot(5)
+        t.goto(wheel.pos())
+        
+        wheel.getscreen().update() 
+        sleep(0.05)
+
+    sleep(0.5)
+    # Hide Spirograph
+    t.hideturtle()
+    spiro.clear()
+    wheel.clear()
+    wheel.getscreen().update()
+
+# Spirograph drawing by trace
+def draw_spiro():
+    # put turtle at starting point
+    t.penup()
+    t.goto(scale * (R - r + d), 0)
+    t.pendown()
+    # trace the (x,y) by direct computation
     for angle in range(0, n * 360 + 1):  # add 1 to close a little gap
-        radian_angle = math.radians(angle)
-        x = (R - r) * math.cos(radian_angle) + d * math.cos((R - r) * radian_angle / r)
-        y = (R - r) * math.sin(radian_angle) - d * math.sin((R - r) * radian_angle / r)
+        theta = radians(angle)
+        x = (R - r) * cos(theta) + d * cos((R - r) * theta / r)
+        y = (R - r) * sin(theta) - d * sin((R - r) * theta / r)
         x = scale * x
         y = scale * y
         t.goto(x, y)
+    # todo: turn head of turtle
+    t.hideturtle()
 
-# Position the turtle at the starting point
-t.penup()
-t.goto(scale * (R - r + d), 0)
-t.pendown()
-
-# Animate the drawing of the cycloid
-draw_cycloid()
-t.hideturtle()
+# Animate the spirograph
+show_spiro() if flag else draw_spiro()
 ```
 :::
 
+<!--
+
+
+
+
+-->
 
 <!--
 To test Skulpt, use:
@@ -179,242 +257,7 @@ See also:
 Skulpt Turtle API Documentaion
 https://python-online.ch/pyonline/progs/doc/skulptturtle.pdf
 
->>>
-
-import turtle
-import math
-
-# Create a turtle screen
-window = turtle.Screen()
-window.bgcolor("white")
-window.setup(400, 400) # the default
-# window.setup(width=400, height=400)
-
-t = turtle.Turtle()
-t.speed(0)  # Set the drawing speed to the maximum
-t.pensize(3)
-t.color("#AA00AA")
-
-R = 100
-r = 30
-d = 100
-n = 3 # r // math.gcd(R, r)
-
-# Function to draw a cycloid
-def draw_cycloid():
-    for angle in range(0, n * 360):
-        radian_angle = math.radians(angle)
-        x = (R - r) * math.cos(radian_angle) + d * math.cos((R - r) * radian_angle / r)
-        y = (R - r) * math.sin(radian_angle) - d * math.sin((R - r) * radian_angle / r)
-        t.goto(x, y)
-
-# Position the turtle at the starting point
-t.penup()
-t.goto(R - r + d, 0)
-t.pendown()
-
-# Animate the drawing of the cycloid
-draw_cycloid()
-t.hideturtle()
 -->
-
-<textarea id="code1" cols="80" rows="10" class="hide">
-# Python Turtle - Spirograph - www.101computing.net/python-turtle-spirograph/
-import turtle
-from math import cos,sin
-from time import sleep
-
-window = turtle.Screen()
-window.bgcolor("#FFFFFF")
-
-mySpirograph = turtle.Turtle()
-mySpirograph.hideturtle()
-mySpirograph.tracer(0)
-mySpirograph.speed(0)
-mySpirograph.pensize(2)
-
-myPen = turtle.Turtle()
-myPen.hideturtle()
-myPen.tracer(0)
-myPen.speed(0)
-myPen.pensize(3)
-myPen.color("#AA00AA")
-
-# R = 125
-# r = 75.0  # make this a float for Skulpt, otherwise (R-r)/r is an integer.
-# d = 125
-R = int(input('value of R (default 125)') or '125')
-r = float(input('value of r (default 75)') or '75')
-d = int(input('value of d (default 125)') or '125')
-f = 1 # for r = 75
-# f = 8 # for r = 85, how to compute f, the number of repeats for steps?
-
-angle = 0
-
-myPen.penup()
-myPen.goto(R-r+d,0)
-myPen.pendown()
-
-theta = 0.2
-steps = f * int(6*3.14/theta)
-
-
-for t in range(0,steps):
-    mySpirograph.clear()
-    mySpirograph.penup()
-    mySpirograph.setheading(0)
-    mySpirograph.goto(0,-R)
-    mySpirograph.color("#999999")
-    mySpirograph.pendown()
-    mySpirograph.circle(R)
-    angle += theta
-    
-    a, b = (R - r), (R - r)/r
-
-    x = a * cos(angle)
-    y = a * sin(angle)
-    mySpirograph.penup()
-    mySpirograph.goto(x,y-r)
-    mySpirograph.color("#222222")
-    mySpirograph.pendown()
-    mySpirograph.circle(r)
-    mySpirograph.penup()
-    mySpirograph.goto(x,y)
-    mySpirograph.dot(5)
-    
-    x = a * cos(angle) + d * cos(b * angle)
-    y = a * sin(angle) - d * sin(b * angle)
-    mySpirograph.pendown()
-    mySpirograph.goto(x,y)
-    mySpirograph.dot(5)
-    myPen.goto(mySpirograph.pos())
-    
-    mySpirograph.getscreen().update() 
-    sleep(0.05)
-
-sleep(0.5)
-# Hide Spirograph
-mySpirograph.clear()
-mySpirograph.getscreen().update()
-</textarea>
-
-<textarea id="code2" cols="80" rows="10" class="hide">
-# Python Turtle - Spirograph - www.101computing.net/python-turtle-spirograph/
-import turtle
-from math import cos,sin
-from time import sleep
-
-window = turtle.Screen()
-window.bgcolor("#FFFFFF")
-
-mySpirograph = turtle.Turtle()
-mySpirograph.hideturtle()
-mySpirograph.tracer(0)
-mySpirograph.speed(0)
-mySpirograph.pensize(2)
-
-myPen = turtle.Turtle()
-myPen.hideturtle()
-myPen.tracer(0)
-myPen.speed(0)
-myPen.pensize(3)
-myPen.color("#AA00AA")
-
-R = 125
-r = 85.0  # make this a float for Skulpt, otherwise (R-r)/r is an integer.
-d = 125
-
-angle = 0
-
-myPen.penup()
-myPen.goto(R-r+d,0)
-myPen.pendown()
-
-theta = 0.2
-steps = 8 * int(6*3.14/theta)
-
-for t in range(0,steps):
-    mySpirograph.clear()
-    mySpirograph.penup()
-    mySpirograph.setheading(0)
-    mySpirograph.goto(0,-R)
-    mySpirograph.color("#999999")
-    mySpirograph.pendown()
-    mySpirograph.circle(R)
-    angle+=theta
-    
-    x = (R - r) * cos(angle)
-    y = (R - r) * sin(angle)
-    mySpirograph.penup()
-    mySpirograph.goto(x,y-r)
-    mySpirograph.color("#222222")
-    mySpirograph.pendown()
-    mySpirograph.circle(r)
-    mySpirograph.penup()
-    mySpirograph.goto(x,y)
-    mySpirograph.dot(5)
-    
-    x = (R - r) * cos(angle) + d * cos(((R-r)/r)*angle)
-    y = (R - r) * sin(angle) - d * sin(((R-r)/r)*angle)
-    mySpirograph.pendown()
-    mySpirograph.goto(x,y)
-    mySpirograph.dot(5)
-    myPen.goto(mySpirograph.pos())
-    
-    mySpirograph.getscreen().update() 
-    sleep(0.05)
-
-sleep(0.02)
-# Hide Spirograph
-mySpirograph.clear()
-mySpirograph.getscreen().update()
-</textarea>
-
-<textarea id="code3" cols="80" rows="10" class="hide">
-# Cycloid by ChatGPT (corrected version)
-
-import turtle
-import math
-
-# Create a turtle screen
-wn = turtle.Screen()
-wn.bgcolor("white")
-
-# Create a turtle
-t = turtle.Turtle()
-t.speed(0)  # Set the drawing speed to the maximum
-t.pensize(3)
-t.color("#AA00AA")
-
-# Parameters for the cycloid
-R = 100  # Radius of the cycloid
-r = 30   # Radius of the rolling circle
-d = 100  # Distance from the center of the rolling circle to the tracing point
-n = 3    # number of rounds. (R - r)/r = 70/30 = 7/3,
-         # amd 7/3 (n * 2 * pi) gives a multiple of 2 * pi when n = 3
-
-# Function to draw a cycloid
-def draw_cycloid():
-    for angle in range(0, n * 360):
-        radian_angle = math.radians(angle)
-        x = (R - r) * math.cos(radian_angle) + d * math.cos((R - r) * radian_angle / r)
-        y = (R - r) * math.sin(radian_angle) - d * math.sin((R - r) * radian_angle / r)
-        t.goto(x, y)
-
-# Position the turtle at the starting point
-t.penup()
-t.goto(R - r + d, 0)
-t.pendown()
-
-# Animate the drawing of the cycloid
-draw_cycloid()
-t.hideturtle()
-
-# This is a hypotrochoid, not a cycloid.
-</textarea>
-
-
-
 
 <!--
 Note:
@@ -582,10 +425,12 @@ def get_program():
     R = int(Element('radius-big').value)
     r = int(Element('radius-small').value)
     d = int(Element('radius-pen').value)
+    check = document.getElementById('scale').checked
+    scale = int(500/(2 * R + 5) + 0.5) if check else 1  # scale = 500/(2 * R + margin), round up
+    flag = document.getElementById('circle').checked
+    # compose the program
     program = []
-    program.append(f'R = {R}')
-    program.append(f'r = {r}')
-    program.append(f'd = {d}')
+    program.append(f'R, r, d, scale, flag = {R}, {r}, {d}, {scale}, {flag}')
     # Note: innerHtml is read-only
     program.append(Element('code').innerHtml)
     return '\n'.join(program)
