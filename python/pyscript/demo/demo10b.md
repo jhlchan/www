@@ -677,7 +677,7 @@ R = 100  # Radius of the cycloid
 r = 30   # Radius of the rolling circle
 d = 100  # Distance from the center of the rolling circle to the tracing point
 n = 3    # number of rounds. (R - r)/r = 70/30 = 7/3,
-         # amd 7/3 (n * 2 * pi) gives a multiple of 2 * pi when n = 3
+         # and 7/3 (n * 2 * pi) gives a multiple of 2 * pi when n = 3
 
 # Function to draw a cycloid
 def draw_cycloid():

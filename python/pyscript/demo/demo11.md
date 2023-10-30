@@ -34,29 +34,29 @@ header-includes: |
            width: 38px;
            border: 2px solid #484848;
            background: white;
-         }
-         .b-ring {
+        }
+        .b-ring {
            border-radius: 50%;
            height: 38px;
            width: 38px;
            border: 2px solid black;
-         }
-         .w-ring {
+        }
+        .w-ring {
            border-radius: 50%;
            height: 38px;
            width: 38px;
            border: 2px solid white;
-         }
-         .hide {
+        }
+        .hide {
             display: none;
-         }
-         .param {
+        }
+        .param {
             background: lightgreen;
-         }
-         .info {
+        }
+        .info {
             background: lavender;
             font-size: 20px;
-         }
+        }
     </style>
 include-after: |
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
