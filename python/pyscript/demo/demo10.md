@@ -81,6 +81,10 @@ From Python 3.5 onwards, there is `math.gcd(x,y)` to compute the `gcd` function 
 +-------------------+-------------------+------------------------------+-----------------+
 |   100             |  50               | 10                           | ellipse         |
 +-------------------+-------------------+------------------------------+-----------------+
+|   150             |  50               | 10                           | round triangle  |
++-------------------+-------------------+------------------------------+-----------------+
+|   150             |  50               | 109                          | 3-loop clover   |
++-------------------+-------------------+------------------------------+-----------------+
 
 
 :::{.board .param}
@@ -138,7 +142,7 @@ t.color("#AA00AA")
 # r = 30,  Radius of the rolling circle
 # d = 100, Distance from the center of the rolling circle to the tracing point
 # n = 3,   number of rounds. (R - r)/r = 70/30 = 7/3, so n = 3 = 30/10, where 10 = gcd(70,30)
-n = r // math.gcd(R, r)
+n = r // math.gcd(R, r)   # Skulpt 2.6 Python already has math.gcd(x, y)
 # print(f'R = {R}, r = {r}, d = {d}, n = {n}') # Skulpt is not yet Python 3 with f-formating
 print('R = %d, r = %d, d = %d, n = %d' % (R, r, d, n))
 # other controls
@@ -281,7 +285,7 @@ https://python-online.ch/pyonline/progs/doc/skulptturtle.pdf
 
 <!--
 Note:
-Turtle program is in <textarea>, not in <py-script>.
+Turtle program is in <code>, not in <py-script>.
 This is because PyScript will balk at: import turtle
 Instead the python program is run by Skulpt, invoked by PyScript.
 
@@ -314,12 +318,63 @@ def gcd(x, y):
 
 There is already math.gcd(x, y) in Python 3.5
 
+HYPOTROCHOID
+https://mathcurve.com/courbes2d.gb/hypotrochoid/hypotrochoid.shtml
+From the Greek hupo "under" and trokhos "wheel".
+Many examples, but no derivation.
+
 -->
 
 <!-- For output from Skulpt, not PyScript -->
 ## Output{#out}
 ```{#output .py-terminal}
 ```
+
+## Derivation
+
+The locus of the turtle tracing the pattern is given by two rotating vectors:
+
+<svg height="320" width="320" class="info">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+            refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" />
+    </marker>
+  </defs>
+  <circle cx="155" cy="155" r="150" stroke="black" stroke-width="3" fill="lightgrey" />
+  <circle cx="205" cy="230" r="60" stroke="black" stroke-width="3" fill="lightgreen" />
+  <line x1="145" y1="145" x2="195" y2="220" stroke="black" stroke-width="2" marker-end="url(#arrowhead)" />
+  <line x1="206" y1="231" x2="220" y2="210" stroke="black" stroke-width="2" marker-end="url(#arrowhead)" />
+  <circle cx="232" cy="190" r="3" stroke="red" stroke-width="3" fill="red" />
+</svg>
+
+As indicated in the diagram, there is a vector $v_{1}$ from the center of the spirograph to center of the wheel, and another vector $v_{2}$ from center of the wheel to the pen, represented by the red dot.
+
+Assume vector $v_{1}$, of length $R - r$, has angular velocity $\omega_{1}$, and vector $v_{2}$, of length $d$, has angular velocity $\omega_{2}$. The relationship between the angular velocities can be determined by observing the movement of wheel center from two viewpoints:
+
+* relative to the fixed spirograph center, the wheel center moves $(R - r)(\omega_{1}\ t)$ during time $t$,
+* relative to the contact point of the wheel and the spirograph, the center moves $r(\omega_{2}\ t)$ in the _opposite_ direction.
+
+Therefore, $(R - r)(\omega_{1}\ t)\ = -r(\omega_{2}\ t)$, giving $\omega_{2} = - \omega_{1}\ (R - r)/r$.
+
+Let $\theta\ =\ \omega_{1}t$. Then the vector position of the pen is given by vector addition $v_{1} + v_{2}$, which is:
+$$
+\begin{cases}
+x\ =\ (R - r)\ cos\ \theta\ +\ d\ cos\ (\theta\ (R - r) / r)\\
+y\ =\ (R - r)\ sin\ \theta\ -\ d\ sin\ (\theta\ (R - r) / r)
+\end{cases}
+$$
+
+Putting $R = q\ r$, and $d = k\ r$ with $q \gt 1$, the equations become:
+$$
+\begin{cases}
+x/r\ =\ (q - 1)\ cos\ \theta\ +\ k\ cos\ ((q - 1)\ \theta)\\
+y/r\ =\ (q - 1)\ sin\ \theta\ -\ k\ sin\ ((q - 1)\ \theta)
+\end{cases}
+$$
+Hence the spirograph patterns depend only on the ratios $q$ and $k$. Indeed, $q - 1\ =\ \lvert \omega_{2}/\omega_{1}\ \rvert$.
+
+When $q = n$, an integer, and $k \lt 1$, the spirograph resembles a rounded version of the regular $n$-sided polygon.
 
 <py-terminal id="debug"></py-terminal>
 
