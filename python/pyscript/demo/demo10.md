@@ -66,6 +66,22 @@ Let $g = gcd(R - r, r) = gcd(R, r)$, the greatest common divisor of $R$ and $r$.
 
 From Python 3.5 onwards, there is `math.gcd(x,y)` to compute the `gcd` function for integers `x, y`.
 
+## Spirograph examples with parameters
+
++-------------------+-------------------+------------------------------+-----------------+
+| Spiro radius $R$  | Wheel radius $r$  | Pen from wheel center $d$    |  Pattern        |
++==================:+==================:+=============================:+================:+
+|   100             |  30               | 100                          | 10-loop clover  |
++-------------------+-------------------+------------------------------+-----------------+
+|   125             |  50               | 100                          | 5-loop clover   |
++-------------------+-------------------+------------------------------+-----------------+
+|   125             |  75               | 125                          | 5-point star    |
++-------------------+-------------------+------------------------------+-----------------+
+|   125             |  85               | 125                          | 25-point star   |
++-------------------+-------------------+------------------------------+-----------------+
+|   100             |  50               | 10                           | ellipse         |
++-------------------+-------------------+------------------------------+-----------------+
+
 
 :::{.board .param}
 &nbsp;&nbsp;&nbsp;
@@ -76,10 +92,12 @@ Big circle radius: <select id="radius-big" class="py-input">
 </select>
 Small circle radius: <select id="radius-small" class="py-input">
     <option value="30" selected>30</option>
+    <option value="50">50</option>
     <option value="75">75</option>
     <option value="85">85</option>
 </select>
 Pen from small center: <select id="radius-pen" class="py-input">
+    <option value="10">10</option>
     <option value="100" selected>100</option>
     <option value="125">125</option>
     <option value="150">150</option>
@@ -130,14 +148,14 @@ print('scale = %f, show circle flag = %r' % (scale, flag))
 # Note: scale a float for Skulpt
 R, r, d = scale * R, scale * r, scale * d
 a, b = (R - r), (R - r)/r
-wait = 0.01 # 0.01 = fast, 0.05 = slow
+wait = 0  # 0.01 = fast, 0.05 = slow
 
 # Spirograph drawing with circles
 def show_spiro():
     # big circle is fixed
     spiro = turtle.Turtle()
     spiro.speed(0)
-    spiro.color('black')
+    spiro.color('white') # if differ from fillcolor, will leave a gap
     spiro.pensize(2)
     spiro.penup()
     spiro.goto(0, -R)
@@ -177,9 +195,9 @@ def show_spiro():
         wheel.penup()
         wheel.goto(x, y - r)
         wheel.pendown()
-        wheel.color("#222222")
+        wheel.color('plum') # if differ from fillcolor, will leave a gap
         wheel.pensize(2)
-        wheel.fillcolor('lavender')
+        wheel.fillcolor('plum') # lavender purple = #967BB6
         wheel.begin_fill()
         wheel.circle(r)
         wheel.end_fill()
@@ -205,6 +223,7 @@ def show_spiro():
     spiro.clear()
     wheel.clear()
     wheel.getscreen().update()
+
 
 # Spirograph drawing by trace
 def draw_spiro():
