@@ -101,7 +101,7 @@ Pen from small center: <select id="radius-pen" class="py-input">
 # Cycloid by ChatGPT (corrected version)
 
 import turtle
-from math import radians, pi, sin, cos, gcd
+import math
 from time import sleep
 
 # Create a turtle screen
@@ -120,11 +120,17 @@ t.color("#AA00AA")
 # r = 30,  Radius of the rolling circle
 # d = 100, Distance from the center of the rolling circle to the tracing point
 # n = 3,   number of rounds. (R - r)/r = 70/30 = 7/3, so n = 3 = 30/10, where 10 = gcd(70,30)
-n = r // gcd(R, r)
+n = r // math.gcd(R, r)
 # print(f'R = {R}, r = {r}, d = {d}, n = {n}') # Skulpt is not yet Python 3 with f-formating
 print('R = %d, r = %d, d = %d, n = %d' % (R, r, d, n))
 # other controls
 print('scale = %f, show circle flag = %r' % (scale, flag))
+
+# scale the length parameters
+# Note: scale a float for Skulpt
+R, r, d = scale * R, scale * r, scale * d
+a, b = (R - r), (R - r)/r
+wait = 0.01 # 0.01 = fast, 0.05 = slow
 
 # Spirograph drawing with circles
 def show_spiro():
@@ -134,18 +140,19 @@ def show_spiro():
     spiro.color('black')
     spiro.pensize(2)
     spiro.penup()
-    spiro.goto(0,-R * scale)
+    spiro.goto(0, -R)
     spiro.pendown()
-    spiro.circle(scale * R)
+    spiro.fillcolor('white')
+    spiro.begin_fill()
+    spiro.circle(R)
+    spiro.end_fill()
     spiro.hideturtle()
 
     # small circle rotates inside
     wheel = turtle.Turtle()
     wheel.hideturtle()
-    wheel.tracer(0)
+    wheel.tracer(0)  # if tracer is present, the wheel flickers
     wheel.speed(0)
-    wheel.color("#222222")
-    wheel.pensize(2)
 
     # parameters
     # R = 125   # spirograph big radius
@@ -157,42 +164,43 @@ def show_spiro():
 
     # initial positions
     t.penup()
-    t.goto(scale * (R - r + d), 0)
+    t.goto(R - r + d, 0)
     t.pendown()
+    t.hideturtle()
 
-    angle = 0
-    theta = 0.2   # angle increment
-    steps = int(n * 2 * pi/theta)
-    
-    for _ in range(0,steps):
+    for angle in range(0, n * 360 + 1):  # 0 to n * 360 inclusive
         wheel.clear()
-        angle += theta
+        theta = math.radians(angle)
         
-        a, b = (R - r), 1.0 * (R - r)/r # make this a float for Skulpt
-
-        x = a * cos(angle)
-        y = a * sin(angle)
+        x = a * math.cos(theta)
+        y = a * math.sin(theta)
         wheel.penup()
-        wheel.goto(scale * x, scale * (y - r))
+        wheel.goto(x, y - r)
         wheel.pendown()
-        wheel.circle(scale * r)
+        wheel.color("#222222")
+        wheel.pensize(2)
+        wheel.fillcolor('lavender')
+        wheel.begin_fill()
+        wheel.circle(r)
+        wheel.end_fill()
         wheel.penup()
-
-        wheel.goto(scale * x, scale * y)
+        wheel.goto(x, y)
         wheel.dot(5)
         
-        x = a * cos(angle) + d * cos(b * angle)
-        y = a * sin(angle) - d * sin(b * angle)
+        x = a * math.cos(theta) + d * math.cos(b * theta)
+        y = a * math.sin(theta) - d * math.sin(b * theta)
         wheel.pendown()
-        wheel.goto(scale * x, scale *y)
+        wheel.color('lightgreen')
+        wheel.pensize(3)
+        wheel.goto(x, y)
         wheel.dot(5)
         t.goto(wheel.pos())
         
-        wheel.getscreen().update() 
-        sleep(0.05)
+        wheel.getscreen().update() # show wheel as it has tracer(0)
+        sleep(wait)
 
+    # hide Spirograph
     sleep(0.5)
-    # Hide Spirograph
     t.hideturtle()
     spiro.clear()
     wheel.clear()
@@ -202,30 +210,23 @@ def show_spiro():
 def draw_spiro():
     # put turtle at starting point
     t.penup()
-    t.goto(scale * (R - r + d), 0)
+    t.goto(R - r + d, 0)
     t.pendown()
+    t.hideturtle()
+
     # trace the (x,y) by direct computation
-    for angle in range(0, n * 360 + 1):  # add 1 to close a little gap
-        theta = radians(angle)
-        x = (R - r) * cos(theta) + d * cos((R - r) * theta / r)
-        y = (R - r) * sin(theta) - d * sin((R - r) * theta / r)
-        x = scale * x
-        y = scale * y
+    for angle in range(0, n * 360 + 1):  #  to n * 360 inclusive
+        theta = math.radians(angle)
+        x = a * math.cos(theta) + d * math.cos(b * theta)
+        y = a * math.sin(theta) - d * math.sin(b * theta)
         t.goto(x, y)
     # todo: turn head of turtle
-    t.hideturtle()
+    # t.hideturtle()
 
 # Animate the spirograph
 show_spiro() if flag else draw_spiro()
 ```
 :::
-
-<!--
-
-
-
-
--->
 
 <!--
 To test Skulpt, use:
@@ -328,6 +329,8 @@ function sk_get(x) {
     return Sk.builtinFiles["files"][x]
 }
 
+/* Not working yet!
+
 // Customizing modules after import
 // see: https://skulpt.org/using.html
 Sk.onAfterImport = function(library) {
@@ -351,7 +354,7 @@ Sk.onAfterImport = function(library) {
   }
 }
 // not really for turtle, need to investigate.
-
+*/
 </script>
 ```
 
@@ -381,8 +384,8 @@ from js import document
 from js import Sk       # get Skulpt
 
 # logging
-debug = True
-# debug = False
+# debug = True
+debug = False
 
 if not debug: document.getElementById('debug').style = 'display: none'
 
@@ -412,13 +415,8 @@ def builtinRead(x):
 # Calling JavaScript functions from Python
 # Thus, if you call: f(a=2, b=3)
 # then the JavaScript function receives one argument which is a JavaScript object {a : 2, b : 3}.
-Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfunTakesPrompt = True,) # Yes! this works!
+Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfunTakesPrompt = True,) # Yes! this works, too!
 # Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfun=create_proxy(inf), inputfunTakesPrompt = True,) # Yes! this works!
-
-# Skulpt canvas setting (no scaling of turtle)
-Sk.TurtleGraphics.width = 500
-Sk.TurtleGraphics.height = 500
-# these two lines has no effect!
 
 # get a program from selection
 def get_program():
@@ -426,7 +424,7 @@ def get_program():
     r = int(Element('radius-small').value)
     d = int(Element('radius-pen').value)
     check = document.getElementById('scale').checked
-    scale = int(500/(2 * R + 5) + 0.5) if check else 1  # scale = 500/(2 * R + margin), round up
+    scale = float(500/(2 * R + 5)) if check else 1.0  # scale = 500/(2 * R + margin), a float
     flag = document.getElementById('circle').checked
     # compose the program
     program = []
