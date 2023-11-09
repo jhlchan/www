@@ -14,7 +14,7 @@ include-after: |
     <!-- file:///Users/josephchan/jc/www/python/pyscript/demo/demo10d.html -->
 ---
 
-# Pyscript - Python3 Help Turtle Demos by Trinket
+# Pyscript - Python3 Help Turtle Demos in Trinket
 
 <!-- Using Trinket for ease of debugging, before using Skulpt. -->
 

@@ -71,9 +71,21 @@ demo09.md      = Fractals: Mandelbrot and Julia sets (with select/magnify, click
 demo10a.md     = Turtle Graphics by Skulpt, with input and choices.
 demo10b.md     = Turtle Graphics Trinkets (no Pyscript, only Pandoc markdown)
 demo10c.md     = Trinkets playground (to check what libraries are loaded by default)
+demo10d.md     = Python3 Help Turtle demos in Trinket
+demo10e.md     = Python3 Help Turtle demos in Skulpt 
+demo10.md      = Pyscript Spirograph (with input parameters)
 demo11a.md     = Pyscript Othello (graphic, no evaluation)
 demo11b.md     = Pyscript Othello (evalution, text-based, input = js.prompt)
 demo11.md      = Pyscript Othello (graphic, with evaluation)
+
+todo:
+* Spirograph with R, r, d, and predicting the endpoint
+* Sudoku, with input puzzle and solve explanation
+* Fractal explorer, with zoom in and zoom out.
+* Monopoly in browser, good idea? or Snakes? or flying chess (飛行棋) ?
+* Chess ? Just two players with back/step
+* Go ? Just two players with back/step
+* Rubik cube unwind? How to input a cube? Just cheat by scramble/unscramble?
 
 Pyscript Examples
 -----------------
@@ -548,6 +560,18 @@ https://skulpt.org/docs/index.html
 What is Skulpt?
 
 Skulpt is a system that compiles Python (of the 2.6-ish variety) into Javascript. But it's not Javascript that you can paste in to your browser and run. Python and Javascript are very different languanges, their types are different, their scoping rules are different. Python is designed to be run on Linux, or Windows, or Mac OS X, not in the browser! So, to provide a True Python experience Skulpt must provide a runtime environment in which the compiled code executes. This runtime environment is provided by the skulpt.min.js and skulpt-stdlib.js files that you must include in your web page in order to make Skulpt work.
+
+Skulpt Turtle API Documentaion
+https://python-online.ch/pyonline/progs/doc/skulptturtle.pdf
+in /python/pyscript/skulpt/
+
+Skuplt Gallery
+https://skulpt.org/gallery.html
+This is where information about projects that use Skulpt goes.
+* Trinket        https://trinket.io/
+* Math to Code   https://mathtocode.com/
+* CodeSkulptor   https://py3.codeskulptor.org/
+
 
 Pyscript DOM
 ------------
