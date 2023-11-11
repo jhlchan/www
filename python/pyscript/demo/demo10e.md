@@ -53,6 +53,10 @@ Select an example:&nbsp; <select id="choice">
     <option value="mixer">Color Mixer</option>
     <option value="design">BYTE Design</option>
     <option value="chaos">Chaos</option>
+    <option value="clock">Clock</option>
+    <option value="sorts">Sorting</option>
+    <option value="paint">Paint</option>
+    <option value="kolam">Lindenmayer</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -316,7 +320,7 @@ def setbgcolor():
     window.bgcolor(color)
 
 def main():
-    global window, red, green, blue
+    global red, green, blue                         # global for setbgcolor()
     window.delay(0)
     # window.setworldcoordinates(-1, -0.3, 3, 1.3)  # JC: no proper write after setworldcoordinates
     window.bgcolor("yellow")
@@ -586,6 +590,604 @@ main()
 # The zoom in action is different from Python3.
 # For this one, any setworldcoordinates will clear the image, not stretching the image.
 </textarea>
+
+<textarea id="clock" class="hide">
+# debugger     # invokes browser debugger
+#!/usr/bin/env python3
+# -*- coding: cp1252 -*-
+"""       turtle-example-suite:
+
+             tdemo_clock.py
+
+Enhanced clock-program, showing date
+and time
+  ------------------------------------
+   Press STOP to exit the program!
+  ------------------------------------
+"""
+from turtle import *
+from datetime import datetime
+
+def jump(distanz, winkel=0):
+    penup()
+    right(winkel)
+    forward(distanz)
+    left(winkel)
+    pendown()
+
+def hand(laenge, spitze):
+    fd(laenge*1.15)
+    rt(90)
+    fd(spitze/2.0)
+    lt(120)
+    fd(spitze)
+    lt(120)
+    fd(spitze)
+    lt(120)
+    fd(spitze/2.0)
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+def make_hand_shape(name, laenge, spitze):
+    reset()
+    speed(0)     # JC, not required for Python3
+    jump(-laenge*0.15)
+    # begin_poly()    # Python3
+    hand(laenge, spitze)
+    # end_poly()      # Python3
+    # hand_form = get_poly()  # Python3
+    # hand_form = ((0,0), (1,1))  # This Skulpt version uses ((x,y), ...)
+    hand_form = ((-18.75,0.00), (125.00,0.00), (125.00,-12.50), (146.65,-0.00), (125.00,12.50), (125.00,0.00))
+    # print(hand_form)
+    # register_shape(name, hand_form) # Python3
+    # window.register_shape(name, hand_form) # JC  invalid exception object! cannot resolve this.
+
+"""
+make_hand_shape("second_hand", 125, 25)
+((-18.75,0.00), (125.00,0.00), (125.00,-12.50), (146.65,-0.00), (125.00,12.50), (125.00,0.00))
+make_hand_shape("minute_hand",  130, 25)
+((-19.50,0.00), (130.00,0.00), (130.00,-12.50), (151.65,-0.00), (130.00,12.50), (130.00,0.00))
+make_hand_shape("hour_hand", 90, 25)
+((-13.50,0.00), (90.00,0.00), (90.00,-12.50), (111.65,-0.00), (90.00,12.50), (90.00,0.00))
+"""
+
+def clockface(radius):
+    reset()
+    speed(0)     # JC, not required for Python3
+    pensize(7)
+    for i in range(60):
+        jump(radius)
+        if i % 5 == 0:
+            fd(25)
+            jump(-radius-25)
+        else:
+            dot(3)
+            jump(-radius)
+        rt(6)
+
+def setup():
+    global second_hand, minute_hand, hour_hand, writer
+    # mode("logo")    # Python3
+    make_hand_shape("second_hand", 125 * scale, 25)
+    make_hand_shape("minute_hand",  130 * scale, 25)
+    make_hand_shape("hour_hand", 90 * scale, 25)
+    clockface(160 * scale)
+    second_hand = Turtle()
+    second_hand.shape("second_hand")
+    second_hand.color("gray20", "gray80")
+    minute_hand = Turtle()
+    minute_hand.shape("minute_hand")
+    minute_hand.color("blue1", "red1")
+    hour_hand = Turtle()
+    hour_hand.shape("hour_hand")
+    hour_hand.color("blue3", "red3")
+    for hand in second_hand, minute_hand, hour_hand:
+        # hand.resizemode("user")  # Python3
+        # hand.shapesize(1, 1, 3)  # Python3
+        hand.speed(0)
+    ht()
+    writer = Turtle()
+    # writer.mode("logo")
+    writer.ht()
+    writer.pu()
+    writer.bk(85)
+
+def wochentag(t):
+    wochentag = ["Monday", "Tuesday", "Wednesday",
+        "Thursday", "Friday", "Saturday", "Sunday"]
+    return wochentag[t.weekday()]
+
+def datum(z):
+    monat = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June",
+             "July", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."]
+    j = z.year
+    m = monat[z.month - 1]
+    t = z.day
+    return "%s %d %d" % (m, t, j)
+
+def tick():
+    t = datetime.today()
+    sekunde = t.second + t.microsecond*0.000001
+    minute = t.minute + sekunde/60.0
+    stunde = t.hour + minute/60.0
+    try:
+        tracer(False)  # Terminator can occur here
+        writer.clear()
+        writer.home()
+        writer.forward(65)
+        writer.write(wochentag(t),
+                     align="center", font=("Courier", 14, "bold"))
+        writer.back(150)
+        writer.write(datum(t),
+                     align="center", font=("Courier", 14, "bold"))
+        writer.forward(85)
+        second_hand.setheading(6*sekunde)  # or here
+        minute_hand.setheading(6*minute)
+        hour_hand.setheading(30*stunde)
+        tracer(True)
+        # ontimer(tick, 100)   # Python3
+        window.ontimer(tick, 100)  # JC
+    except Terminator:
+        pass  # turtledemo user pressed STOP
+
+def main():
+    tracer(False)
+    setup()
+    tracer(True)
+    tick()
+    return "EVENTLOOP"
+
+main()
+
+"""
+t = Turtle()
+w = Screen()
+print(w.getshapes())
+# ['arrow', 'square', 'triangle', 'classic', 'turtle', 'circle']
+"""
+
+# Cannot make register_shape to work.
+# Final info display is still one single line.
+</textarea>
+
+<textarea id="sorts" class="hide">
+#!/usr/bin/env python3
+"""
+
+         sorting_animation.py
+
+A minimal sorting algorithm animation:
+Sorts a shelf of 10 blocks using insertion
+sort, selection sort and quicksort.
+
+Shelfs are implemented using builtin lists.
+
+Blocks are turtles with shape "square", but
+stretched to rectangles by shapesize()
+ ---------------------------------------
+       To exit press space button
+ ---------------------------------------
+"""
+from turtle import *
+import random
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+class Block(Turtle):
+
+    def __init__(self, size):
+        self.size = size
+        # Turtle.__init__(self, shape="square", visible=False)  # Python3
+        Turtle.__init__(self)  # JC: add this
+        self.shape("square")   # JC
+        self.hideturtle()      # JC
+        self.pu()
+        # self.shapesize(size * 1.5, 1.5, 2) # square to rectangle  # Python3
+        self.fillcolor("black")
+        self.st()
+
+    def glow(self):
+        self.fillcolor("red")
+
+    def unglow(self):
+        self.fillcolor("black")
+
+    def __repr__(self):
+        # return "Block size: {0}".format(self.size)
+        return "Block size: %d" % self.size
+
+
+class Shelf(list):
+
+    # JC: only one call of Shelf(-200)
+    # def __init__(self, y):
+    #     "create a shelf. y is y-position of first block"
+    #     self.y = y
+    #     self.x = -150
+
+    def __init__(self):
+        self.y = -200
+        self.x = -150
+
+    def push(self, d):
+        # width, _, _ = d.shapesize()   # Python3
+        width = d.size                  # JC: use this
+        # align blocks by the bottom edge
+        y_offset = width / 2 * 20
+        d.sety(self.y + y_offset)
+        d.setx(self.x + 34 * len(self))
+        self.append(d)
+
+    def _close_gap_from_i(self, i):
+        for b in self[i:]:
+            xpos, _ = b.pos()
+            b.setx(xpos - 34)
+
+    def _open_gap_from_i(self, i):
+        for b in self[i:]:
+            xpos, _ = b.pos()
+            b.setx(xpos + 34)
+
+    def pop(self, key):
+        b = list.pop(self, key)
+        b.glow()
+        b.sety(200)
+        self._close_gap_from_i(key)
+        return b
+
+    def insert(self, key, b):
+        self._open_gap_from_i(key)
+        list.insert(self, key, b)
+        b.setx(self.x + 34 * key)
+        # width, _, _ = b.shapesize()  # Python3
+        width = b.size                 # JC
+        # align blocks by the bottom edge
+        y_offset = width / 2 * 20
+        b.sety(self.y + y_offset)
+        b.unglow()
+
+def isort(shelf):
+    length = len(shelf)
+    for i in range(1, length):
+        hole = i
+        while hole > 0 and shelf[i].size < shelf[hole - 1].size:
+            hole = hole - 1
+        shelf.insert(hole, shelf.pop(i))
+    return
+
+def ssort(shelf):
+    length = len(shelf)
+    for j in range(0, length - 1):
+        imin = j
+        for i in range(j + 1, length):
+            if shelf[i].size < shelf[imin].size:
+                imin = i
+        if imin != j:
+            shelf.insert(j, shelf.pop(imin))
+
+def partition(shelf, left, right, pivot_index):
+    pivot = shelf[pivot_index]
+    shelf.insert(right, shelf.pop(pivot_index))
+    store_index = left
+    for i in range(left, right): # range is non-inclusive of ending value
+        if shelf[i].size < pivot.size:
+            shelf.insert(store_index, shelf.pop(i))
+            store_index = store_index + 1
+    shelf.insert(store_index, shelf.pop(right)) # move pivot to correct position
+    return store_index
+
+def qsort(shelf, left, right):
+    if left < right:
+        pivot_index = left
+        pivot_new_index = partition(shelf, left, right, pivot_index)
+        qsort(shelf, left, pivot_new_index - 1)
+        qsort(shelf, pivot_new_index + 1, right)
+
+def randomize():
+    disable_keys()
+    clear()
+    target = list(range(10))
+    random.shuffle(target)
+    for i, t in enumerate(target):
+        for j in range(i, len(s)):
+            if s[j].size == t + 1:
+                s.insert(i, s.pop(j))
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def show_text(text, line=0):
+    line = 20 * line
+    goto(0,-250 - line)
+    write(text, align="center", font=("Courier", 16, "bold"))
+
+def start_ssort():
+    disable_keys()
+    clear()
+    show_text("Selection Sort")
+    ssort(s)
+    clear()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def start_isort():
+    disable_keys()
+    clear()
+    show_text("Insertion Sort")
+    isort(s)
+    clear()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def start_qsort():
+    disable_keys()
+    clear()
+    show_text("Quicksort")
+    qsort(s, 0, len(s) - 1)
+    clear()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def init_shelf():
+    global s
+    # s = Shelf(-200)    # Python3
+    s = Shelf()          # JC: using the new __init__
+    vals = (4, 2, 8, 9, 1, 5, 10, 3, 7, 6)
+    for i in vals:
+        s.push(Block(i))
+
+def disable_keys():
+    window.onkey(None, "s")
+    window.onkey(None, "i")
+    window.onkey(None, "q")
+    window.onkey(None, "r")
+
+def enable_keys():
+    window.onkey(start_isort, "i")
+    window.onkey(start_ssort, "s")
+    window.onkey(start_qsort, "q")
+    window.onkey(randomize, "r")
+    window.onkey(bye, "space")
+
+def main():
+    ht()
+    penup()
+    init_shelf()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+    window.listen()
+    return "EVENTLOOP"
+
+instructions1 = "press i for insertion sort, s for selection sort, q for quicksort"
+instructions2 = "spacebar to quit, r to randomize"
+
+main()
+# Python3 version has shapesize() to change the 'square' turtle to 'rectangular' turtle.
+</textarea>
+
+<textarea id="paint" class="hide">
+#!/usr/bin/env python3
+"""       turtle-example-suite:
+
+            tdemo_paint.py
+
+A simple  event-driven paint program
+
+- left mouse button moves turtle
+- middle mouse button changes color
+- right mouse button toggles between pen up
+(no line drawn when the turtle moves) and
+pen down (line is drawn). If pen up follows
+at least two pen-down moves, the polygon that
+includes the starting point is filled.
+ -------------------------------------------
+ Play around by clicking into the canvas
+ using all three mouse buttons.
+ -------------------------------------------
+          To exit press STOP button
+ -------------------------------------------
+"""
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+# window.bgcolor("yellow")  # white background
+
+# Global colors
+colors=["red", "green", "blue", "yellow"]
+
+def switchupdown():
+    # if pen()["pendown"]:  # Python3
+    if isdown():            # JC: use this
+        end_fill()
+        up()
+        shape("circle")
+    else:
+        down()
+        shape("triangle")
+        begin_fill()
+
+def changecolor():
+    global colors
+    colors = colors[1:]+colors[:1]
+    color(colors[0])
+    fillcolor(colors[0])
+
+def main():
+    speed(0)  # JC
+    # shape("circle")
+    # resizemode("user")   # Python3
+    # shapesize(.5)        # Python3
+    width(3)
+    color(colors[0])
+    fillcolor(colors[0])
+    switchupdown()
+    # onscreenclick(goto,1)             # Python3
+    # onscreenclick(changecolor,2)      # Python3
+    # onscreenclick(switchupdown,3)     # Python3
+    # Skulpt onscreenclick = mousedown, ignores button
+    # JC: use click as 1, key c to change color, key x for up/down, key z to clear.
+    window.onscreenclick(goto,1)
+    window.onkey(changecolor, "c")
+    window.onkey(switchupdown, "x")
+    window.onkey(reset, "z")
+    window.listen()
+    return "EVENTLOOP"
+
+main()
+# Note: must first click on canvas to listen, which also moves the turtle.
+</textarea>
+
+<textarea id="kolam" class="hide">
+#!/usr/bin/env python3
+"""       turtle-example-suite:
+
+        xtx_lindenmayer_indian.py
+
+Each morning women in Tamil Nadu, in southern
+India, place designs, created by using rice
+flour and known as kolam on the thresholds of
+their homes.
+
+These can be described by Lindenmayer systems,
+which can easily be implemented with turtle
+graphics and Python.
+
+Two examples are shown here:
+(1) the snake kolam
+(2) anklets of Krishna
+
+Taken from Marcia Ascher: Mathematics
+Elsewhere, An Exploration of Ideas Across
+Cultures
+
+"""
+################################
+# Mini Lindenmayer tool
+###############################
+
+from turtle import *
+from time import sleep
+from math import sqrt
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+def replace( seq, replacementRules, n ):
+    for i in range(n):
+        newseq = ""
+        for element in seq:
+            newseq = newseq + replacementRules.get(element,element)
+        seq = newseq
+    return seq
+
+def draw( commands, rules ):
+    for b in commands:
+        try:
+            rules[b]()
+        except TypeError:
+            try:
+                draw(rules[b], rules)
+            except:
+                pass
+
+def example1():
+    ################################
+    # Example 1: Snake kolam
+    ################################
+
+
+    def r():
+        right(45)
+
+    def l():
+        left(45)
+
+    def f():
+        forward(7.5 * scale)
+
+    snake_rules = {"-":r, "+":l, "f":f, "b":"f+f+f--f--f+f+f"}
+    snake_replacementRules = {"b": "b+f+b--f--b+f+b"}
+    snake_start = "b--f--b--f"
+
+    drawing = replace(snake_start, snake_replacementRules, 3)
+
+    reset()
+    speed(3)
+    tracer(1,0)
+    ht()
+    up()
+    backward(195 * scale)
+    down()
+    draw(drawing, snake_rules)
+
+def example2():
+    ################################
+    # Example 2: Anklets of Krishna
+    ################################
+
+    def A():
+        color("red")
+        circle(10,90)
+
+    def B():
+        color("black")
+        l = 5/sqrt(2)
+        forward(l * scale)
+        circle(l, 270)
+        forward(l * scale)
+
+    def F():
+        color("green")
+        forward(10 * scale)
+
+    krishna_rules = {"a":A, "b":B, "f":F}
+    krishna_replacementRules = {"a" : "afbfa", "b" : "afbfbfbfa" }
+    krishna_start = "fbfbfbfb"
+
+    reset()
+    speed(0)
+    tracer(3,0)
+    ht()
+    left(45)
+    drawing = replace(krishna_start, krishna_replacementRules, 3)
+    draw(drawing, krishna_rules)
+    tracer(1)
+
+
+def main():
+    example1()
+    sleep(3)
+    example2()
+    return "Done!"
+
+main()
+</textarea>
+
+
 
 <!-- For graph output from Skulpt, not PyScript -->
 ::::{.board}

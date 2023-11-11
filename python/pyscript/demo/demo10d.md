@@ -732,7 +732,7 @@ class Block(Turtle):
     def __init__(self, size):
         self.size = size
         # Turtle.__init__(self, shape="square", visible=False)  # Python3
-        self = Turtle()   # JC: add this
+        Turtle.__init__(self) # JC: add this
         self.shape("square")
         self.hideturtle()
         self.pu()
@@ -747,14 +747,20 @@ class Block(Turtle):
         self.fillcolor("black")
 
     def __repr__(self):
-        return "Block size: {0}".format(self.size)
+        return "Block size: %d" % self.size
+        # return "Block size: {0}".format(self.size)
 
 
 class Shelf(list):
 
-    def __init__(self, y):
-        "create a shelf. y is y-position of first block"
-        self.y = y
+    # JC: only one call of Shelf(-200)
+    # def __init__(self, y):
+    #     "create a shelf. y is y-position of first block"
+    #     self.y = y
+    #     self.x = -150
+
+    def __init__(self):
+        self.y = -200
         self.x = -150
 
     def push(self, d):
@@ -787,7 +793,8 @@ class Shelf(list):
         self._open_gap_from_i(key)
         list.insert(self, key, b)
         b.setx(self.x + 34 * key)
-        width, _, _ = b.shapesize()
+        # width, _, _ = b.shapesize()  # Python3
+        width = b.size                 # JC
         # align blocks by the bottom edge
         y_offset = width / 2 * 20
         b.sety(self.y + y_offset)
@@ -881,32 +888,47 @@ def start_qsort():
 def init_shelf():
     global s
     # s = Shelf(-200)    # Python3
-    s = Shelf([])        # JC: to avoid 'int' object is not iterable
+    s = Shelf()          # JC: to avoid 'int' object is not iterable
     vals = (4, 2, 8, 9, 1, 5, 10, 3, 7, 6)
     for i in vals:
         s.push(Block(i))
 
+window = Screen()   # JC: global window
+
 def disable_keys():
-    onkey(None, "s")
-    onkey(None, "i")
-    onkey(None, "q")
-    onkey(None, "r")
+    # Python3
+    # onkey(None, "s")
+    # onkey(None, "i")
+    # onkey(None, "q")
+    # onkey(None, "r")
+    window.onkey(None, "s")  # JC
+    window.onkey(None, "i")  # JC
+    window.onkey(None, "q")  # JC
+    window.onkey(None, "r")  # JC
 
 def enable_keys():
-    onkey(start_isort, "i")
-    onkey(start_ssort, "s")
-    onkey(start_qsort, "q")
-    onkey(randomize, "r")
-    onkey(bye, "space")
+    # Python3
+    # onkey(start_isort, "i")
+    # onkey(start_ssort, "s")
+    # onkey(start_qsort, "q")
+    # onkey(randomize, "r")
+    # onkey(bye, "space")
+    window.onkey(start_isort, "i")  # JC
+    window.onkey(start_ssort, "s")  # JC
+    window.onkey(start_qsort, "q")  # JC
+    window.onkey(randomize, "r")    # JC
+    window.onkey(bye, "space")      # JC
 
-def zmain():
-    getscreen().clearscreen()
+def main():
+    # getscreen().clearscreen()   # Python3
+    window.clear()   # JC
     ht(); penup()
     init_shelf()
     show_text(instructions1)
     show_text(instructions2, line=1)
     enable_keys()
-    listen()
+    # listen() Python3
+    window.listen()      # JC
     return "EVENTLOOP"
 
 instructions1 = "press i for insertion sort, s for selection sort, q for quicksort"
@@ -915,24 +937,12 @@ instructions2 = "spacebar to quit, r to randomize"
 # if __name__=="__main__":
 #     msg = main()
 #     mainloop()
-# zmain()  # JC: not working
-
-# JC a dummy turtle
-def main():
-    getscreen().clearscreen()
-    pencolor('green')
-    forward(100)
-    dot(15)
-    
 main()
 
-
-Note: have trouble calling the constructor of Shelf(-200) in Python 2.6
-Since this one cannot start properly, remove "?start=result" in iframe URL.
-No use, need to comment out the iframe or the main().
+Note: have trouble calling the constructor of Shelf(-200) in Python 2.6, resolved by modifying __init__.
 -->
 
-<iframe src="https://trinket.io/embed/python/8afd0eeed8?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+<iframe src="https://trinket.io/embed/python/57850ff83a?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
 
 
 ## Paint
@@ -961,38 +971,46 @@ includes the starting point is filled.
 """
 from turtle import *
 
+window = Screen()   # JC: global window
+colors=["red", "green", "blue", "yellow"]  # JC: global colors
+
 def switchupdown(x=0, y=0):
     # if pen()["pendown"]:  # Python3
     if isdown():            # JC: use this
         end_fill()
         up()
+        shape("circle")
     else:
         down()
+        shape("triangle")
         begin_fill()
 
 def changecolor(x=0, y=0):
     global colors
     colors = colors[1:]+colors[:1]
     color(colors[0])
-
-window = Screen()   # JC: global window
-colors=["red", "green", "blue", "yellow"]  # JC: global colors
+    fillcolor(colors[0])    # JC
 
 def main():
-    global colors
-    shape("circle")
+    # global colors                             # Python3
+    # colors=["red", "green", "blue", "yellow"] # Python3
+    # shape("circle")      # JC: remove as shape indicates pen up/downn  
     # resizemode("user")   # Python3
     # shapesize(.5)        # Python3
     width(3)
-    # colors=["red", "green", "blue", "yellow"] # Python3
     color(colors[0])
+    fillcolor(colors[0])   # JC
     switchupdown()
     # onscreenclick(goto,1)             # Python3
     # onscreenclick(changecolor,2)      # Python3
     # onscreenclick(switchupdown,3)     # Python3
-    window.onscreenclick(goto,1)
-    window.onscreenclick(changecolor,2)
-    window.onscreenclick(switchupdown,3)
+    # Skulpt onscreenclick = mousedown, ignores button
+    # JC: use click as 1, key c to change color, key x for up/down, key z to clear.
+    window.onscreenclick(goto,1)        # JC
+    window.onkey(changecolor, "c")      # JC
+    window.onkey(switchupdown, "x")     # JC
+    window.onkey(reset, "z")            # JC
+    window.listen()                     # JC
     return "EVENTLOOP"
 
 # if __name__ == "__main__":
@@ -1001,12 +1019,11 @@ def main():
 #     mainloop()
 main()
 
-Note: Only a red dot at center.
-Looks like Skulpt canvas cannot detect any mouse click/event.
-In the Python3 Help Turtle Demo, right-click cycles color, but cannot simulate mouse to switch up/down. Also, there is no color filling.
+Note: In the Python3 Help Turtle Demo, right-click cycles color, but cannot simulate mouse to switch up/down. Also, there is no color filling.
+Skulpt ignores the mouse buttons, so modify the listeners.
 -->
 
-<iframe src="https://trinket.io/embed/python/a7ed44fece?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+<iframe src="https://trinket.io/embed/python/cd568548de?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
 
 
 ## Lindenmayer
@@ -2566,6 +2583,8 @@ python/ed611b92a7
 python/9adc2ce435
 python/ce9686aab9
 python/688d642ecc
+python/8afd0eeed8
+python/a7ed44fece
 
 python/790c74fcc9
 python/14ecbe3073

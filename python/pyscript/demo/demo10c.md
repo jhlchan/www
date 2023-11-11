@@ -414,6 +414,282 @@ https://codereview.stackexchange.com/questions/74495/random-walk-in-python-turtl
 -->
 <iframe src="https://trinket.io/embed/python/469cd2e5d1?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
 
+## Sorting
+<!--
+#!/usr/bin/env python3
+"""
+
+         sorting_animation.py
+
+A minimal sorting algorithm animation:
+Sorts a shelf of 10 blocks using insertion
+sort, selection sort and quicksort.
+
+Shelfs are implemented using builtin lists.
+
+Blocks are turtles with shape "square", but
+stretched to rectangles by shapesize()
+ ---------------------------------------
+       To exit press space button
+ ---------------------------------------
+"""
+from turtle import *
+import random
+
+
+class Block(Turtle):
+
+    def __init__(self, size):
+        self.size = size
+        # Turtle.__init__(self, shape="square", visible=False)  # Python3
+        Turtle.__init__(self) # JC: add this
+        self.shape("square")
+        self.hideturtle()
+        self.pu()
+        # self.shapesize(size * 1.5, 1.5, 2) # square to rectangle  # Python3
+        self.fillcolor("black")
+        self.st()
+
+    def glow(self):
+        self.fillcolor("red")
+
+    def unglow(self):
+        self.fillcolor("black")
+
+    def __repr__(self):
+        return "Block size: %d" % self.size
+        # return "Block size: {0}".format(self.size)
+
+
+class Shelf(list):
+
+    # JC: only one call of Shelf(-200)
+    # def __init__(self, y):
+    #     "create a shelf. y is y-position of first block"
+    #     self.y = y
+    #     self.x = -150
+
+    def __init__(self):
+        self.y = -200
+        self.x = -150
+
+    def push(self, d):
+        # width, _, _ = d.shapesize()   # Python3
+        width = d.size                  # JC: use this
+        # align blocks by the bottom edge
+        y_offset = width / 2 * 20
+        d.sety(self.y + y_offset)
+        d.setx(self.x + 34 * len(self))
+        self.append(d)
+
+    def _close_gap_from_i(self, i):
+        for b in self[i:]:
+            xpos, _ = b.pos()
+            b.setx(xpos - 34)
+
+    def _open_gap_from_i(self, i):
+        for b in self[i:]:
+            xpos, _ = b.pos()
+            b.setx(xpos + 34)
+
+    def pop(self, key):
+        b = list.pop(self, key)
+        b.glow()
+        b.sety(200)
+        self._close_gap_from_i(key)
+        return b
+
+    def insert(self, key, b):
+        self._open_gap_from_i(key)
+        list.insert(self, key, b)
+        b.setx(self.x + 34 * key)
+        # width, _, _ = b.shapesize()  # Python3
+        width = b.size                 # JC
+        # align blocks by the bottom edge
+        y_offset = width / 2 * 20
+        b.sety(self.y + y_offset)
+        b.unglow()
+
+def isort(shelf):
+    length = len(shelf)
+    for i in range(1, length):
+        hole = i
+        while hole > 0 and shelf[i].size < shelf[hole - 1].size:
+            hole = hole - 1
+        shelf.insert(hole, shelf.pop(i))
+    return
+
+def ssort(shelf):
+    length = len(shelf)
+    for j in range(0, length - 1):
+        imin = j
+        for i in range(j + 1, length):
+            if shelf[i].size < shelf[imin].size:
+                imin = i
+        if imin != j:
+            shelf.insert(j, shelf.pop(imin))
+
+def partition(shelf, left, right, pivot_index):
+    pivot = shelf[pivot_index]
+    shelf.insert(right, shelf.pop(pivot_index))
+    store_index = left
+    for i in range(left, right): # range is non-inclusive of ending value
+        if shelf[i].size < pivot.size:
+            shelf.insert(store_index, shelf.pop(i))
+            store_index = store_index + 1
+    shelf.insert(store_index, shelf.pop(right)) # move pivot to correct position
+    return store_index
+
+def qsort(shelf, left, right):
+    if left < right:
+        pivot_index = left
+        pivot_new_index = partition(shelf, left, right, pivot_index)
+        qsort(shelf, left, pivot_new_index - 1)
+        qsort(shelf, pivot_new_index + 1, right)
+
+def randomize():
+    disable_keys()
+    clear()
+    target = list(range(10))
+    random.shuffle(target)
+    for i, t in enumerate(target):
+        for j in range(i, len(s)):
+            if s[j].size == t + 1:
+                s.insert(i, s.pop(j))
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def show_text(text, line=0):
+    line = 20 * line
+    goto(0,-250 - line)
+    write(text, align="center", font=("Courier", 16, "bold"))
+
+def start_ssort():
+    disable_keys()
+    clear()
+    show_text("Selection Sort")
+    ssort(s)
+    clear()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def start_isort():
+    disable_keys()
+    clear()
+    show_text("Insertion Sort")
+    isort(s)
+    clear()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def start_qsort():
+    disable_keys()
+    clear()
+    show_text("Quicksort")
+    qsort(s, 0, len(s) - 1)
+    clear()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+
+def init_shelf():
+    global s
+    # s = Shelf(-200)    # Python3
+    s = Shelf()          # JC: to avoid 'int' object is not iterable
+    vals = (4, 2, 8, 9, 1, 5, 10, 3, 7, 6)
+    for i in vals:
+        s.push(Block(i))
+
+window = Screen()   # JC: global window
+
+def disable_keys():
+    # Python3
+    # onkey(None, "s")
+    # onkey(None, "i")
+    # onkey(None, "q")
+    # onkey(None, "r")
+    window.onkey(None, "s")  # JC
+    window.onkey(None, "i")  # JC
+    window.onkey(None, "q")  # JC
+    window.onkey(None, "r")  # JC
+
+def enable_keys():
+    # Python3
+    # onkey(start_isort, "i")
+    # onkey(start_ssort, "s")
+    # onkey(start_qsort, "q")
+    # onkey(randomize, "r")
+    # onkey(bye, "space")
+    window.onkey(start_isort, "i")  # JC
+    window.onkey(start_ssort, "s")  # JC
+    window.onkey(start_qsort, "q")  # JC
+    window.onkey(randomize, "r")    # JC
+    window.onkey(bye, "space")      # JC
+
+def main():
+    # getscreen().clearscreen()   # Python3
+    window.clear()   # JC
+    ht(); penup()
+    init_shelf()
+    show_text(instructions1)
+    show_text(instructions2, line=1)
+    enable_keys()
+    # listen() Python3
+    window.listen()      # JC
+    return "EVENTLOOP"
+
+instructions1 = "press i for insertion sort, s for selection sort, q for quicksort"
+instructions2 = "spacebar to quit, r to randomize"
+
+# if __name__=="__main__":
+#     msg = main()
+#     mainloop()
+main()
+
+-->
+<iframe src="https://trinket.io/embed/python/cb5f246c70?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+
+
+## Spare
+
+<!--
+new:
+python/abca1f6721
+python/ebac891477
+python/0346ed4f97
+python/ed611b92a7
+python/9adc2ce435
+python/ce9686aab9
+python/688d642ecc
+
+python/790c74fcc9
+python/14ecbe3073
+python/d2f483d970
+python/b24989033a
+python/8d1bf88ecc
+python/7415d68e62
+python/447cc14376
+python/e55870fa79
+python/68a99324d0
+python/c237f12bc6
+python/736255b9f4
+python/d2f483d970
+python/8951626abc
+python/7ef558297b
+python/d765679079
+python/ce9686aab9
+python/a7ed44fece
+python/5295adff4f
+python/ac0524d22e
+python/63450952ba
+-->
+<iframe src="https://trinket.io/embed/python/ed611b92a7?start=result" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+
+<!-- Important: Always reload the URL (not just reload the page) to have individual Trinkets working. -->
+
 ---
 
 <!-- pandoc -s demo10c.md -o demo10c.html -->
