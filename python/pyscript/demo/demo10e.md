@@ -32,8 +32,8 @@ header-includes: |
     </style>
 include-before: |
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js" type="text/javascript"></script>
-    <script src="https://skulpt.org/js/skulpt.min.js" type="text/javascript"></script>
-    <script src="https://skulpt.org/js/skulpt-stdlib.js" type="text/javascript"></script>
+    <script zsrc="https://skulpt.org/js/skulpt.min.js" src="js/skulpt.min.js" xsrc="js/readable-skulpt.js" type="text/javascript"></script>
+    <script zsrc="https://skulpt.org/js/skulpt-stdlib.js" src="js/jc-skulpt-stdlib.js" ysrc="js/skulpt-stdlib.js"  xsrc="js/readable-skulpt-stdlib.js" type="text/javascript"></script>
 include-after: |
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
@@ -48,7 +48,8 @@ include-after: |
 
 :::{#controls .py-input}
 Select an example:&nbsp; <select id="choice">
-    <option value="tree" selected>Tree</option>
+    <option value="test" selected>Test</option>
+    <option value="tree">Tree</option>
     <option value="dance">Round Dance</option>
     <option value="mixer">Color Mixer</option>
     <option value="design">BYTE Design</option>
@@ -77,6 +78,8 @@ dir(Sk.TurtleGraphics.module.Turtle)
 dir(Sk.TurtleGraphics.module.Screen)
 ['$d', '$r', 'GenericGetAttr', 'GenericPythonGetAttr', 'GenericPythonSetAttr', 'GenericSetAttr', 'HashNotImplemented', '__bool__', '__call__', '__class__', '__defineGetter__', '__defineSetter__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lookupGetter__', '__lookupSetter__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__proto__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__vectorcalloffset__', '_js_type_flags', 'addshape', 'apply', 'as_object_map', 'bgcolor', 'bgpic', 'bye', 'call', 'clear', 'clearscreen', 'constructor', 'delay', 'done', 'exitonclick', 'getshapes', 'hasOwnProperty', 'isPrototypeOf', 'js_id', 'length', 'listen', 'mainloop', 'name', 'new', 'ob$eq', 'ob$ge', 'ob$gt', 'ob$le', 'ob$lt', 'ob$ne', 'ob$type', 'object_entries', 'object_keys', 'object_values', 'onclick', 'onkey', 'onscreenclick', 'ontimer', 'propertyIsEnumerable', 'prototype', 'register_shape', 'reset', 'resetscreen', 'setup', 'setworldcoordinates', 'sk$klass', 'sk$object', 'sk$type', 'toLocaleString', 'toString', 'to_py', 'tp$base', 'tp$call', 'tp$descr_set', 'tp$getattr', 'tp$hash', 'tp$mro', 'tp$name', 'tp$setattr', 'tp$str', 'tracer', 'turtles', 'typeof', 'update', 'valueOf', 'window_height', 'window_width']
 
+dir(Sk.builtin)
+['AssertionError', 'AttributeError', 'BaseException', 'Exception', 'ExternalError', 'IOError', 'ImportError', 'IndentationError', 'IndexError', 'KeyError', 'LookupError', 'NameError', 'NegativePowerError', 'NotImplemented', 'NotImplementedError', 'OperationError', 'OverflowError', 'PyType_IsSubtype', 'RuntimeError', 'StopIteration', 'SuspensionError', 'SyntaxError', 'SystemError', 'SystemExit', 'TimeLimitError', 'TypeError', 'UnboundLocalError', 'UnicodeDecodeError', 'UnicodeEncodeError', 'ValueError', 'ZeroDivisionError', '__bool__', '__class__', '__defineGetter__', '__defineSetter__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__import__', '__init__', '__init_subclass__', '__le__', '__lookupGetter__', '__lookupSetter__', '__lt__', '__module__', '__ne__', '__new__', '__proto__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', '_js_type_flags', '_tryGetSubscript', 'abs', 'all', 'any', 'apply_', 'as_object_map', 'ascii', 'asnum$', 'asnum$nofloat', 'assk$', 'biginteger', 'bin', 'bool', 'buffer', 'bytearray', 'bytes', 'bytes_iter_', 'callable', 'checkBool', 'checkBytes', 'checkCallable', 'checkClass', 'checkComplex', 'checkFloat', 'checkFunction', 'checkInt', 'checkIterable', 'checkNone', 'checkNumber', 'checkSequence', 'checkString', 'chr', 'coerce', 'complex', 'constructor', 'create_dict_iter_', 'delattr', 'dict', 'dict_iter_', 'dictview', 'dir', 'divmod', 'enumerate', 'eval_', 'execfile', 'fabs', 'file', 'filter', 'filter_', 'float_', 'format', 'frozenset', 'func', 'generator', 'getExcInfo', 'getattr', 'globals', 'hasOwnProperty', 'hasattr', 'hash', 'hashCount', 'help', 'hex', 'id', 'idCount', 'input', 'int2str_', 'int_', 'intern', 'interned', 'isPrototypeOf', 'isinstance', 'issubclass', 'iter', 'iterator', 'js_id', 'jseval', 'jsmillis', 'len', 'list', 'listSlice', 'list_iter_', 'lng', 'locals', 'makeGenerator', 'make_structseq', 'map', 'map_', 'max', 'memoryview', 'method', 'min', 'module', 'next_', 'nmber', 'none', 'numtype', 'object', 'object_entries', 'object_keys', 'object_values', 'oct', 'open', 'ord', 'pow', 'print', 'propertyIsEnumerable', 'pyCheckArgs', 'pyCheckArgsLen', 'pyCheckType', 'quit', 'range', 'range_', 'raw_input', 'reduce', 'reload', 'repr', 'reversed', 'round', 'seqtype', 'set', 'set_iter_', 'setattr', 'slice', 'slice$start', 'slice$step', 'slice$stop', 'sorted', 'str', 'str_iter_', 'structseq_types', 'sum', 'super_', 'timSort', 'toLocaleString', 'toString', 'to_py', 'tuple', 'tuple_iter_', 'type', 'type_is_subtype_base_chain', 'typeof', 'unichr', 'valueOf', 'vars', 'xrange', 'zip', 'zip_']
 
 -->
 
@@ -85,6 +88,82 @@ Python programs in <textarea> will have text untouched by markdown.
 If program is put in <code> and marked {=html}, markdown will escape '>' as '&gt;' and '<' as '&lt;'
 Note <textarea> is retrieved by value, while <code> is retrieved by innerHtml.
 -->
+<textarea id="test" class="hide">
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# color of turtle
+t = Turtle()
+print(t.color())
+# ('black', 'black')  , first is color, second is fillcolor.
+t.color('yellow', 'red')
+print(t.color())
+# ('yellow', 'red')
+print(t.fillcolor())
+# red,  Need to recheck some examples using color(p, q)
+
+t.color(0.5, 0.5, 0.5)
+print(t.color())
+# ((127, 127, 127), (127, 127, 127))
+
+# print(window.color())   invalid exception object
+print(window.bgcolor())
+# yellow
+window.bgcolor(0.1, 0.2, 0.3)
+print(window.bgcolor())
+# (25, 51, 76)
+# Thus there should be no need for hex_color(r, b, g)
+
+window.bgcolor('yellow')
+# How to register shapes?
+print(window.getshapes())
+# ['arrow', 'square', 'triangle', 'classic', 'turtle', 'circle']
+
+# screen.register_shape("triangle", ((5,-3), (0,5), (-5,-3)))
+
+print(type(t))                # <class 'turtle.Turtle'>
+
+"""
+try:
+    import inspect            # No module named inspect
+    print(dir(inspect))
+except Exception, e: print(e)
+
+
+make_hand_shape("second_hand", 125, 25)
+((-18.75,0.00), (125.00,0.00), (125.00,-12.50), (146.65,-0.00), (125.00,12.50), (125.00,0.00))
+make_hand_shape("minute_hand",  130, 25)
+((-19.50,0.00), (130.00,0.00), (130.00,-12.50), (151.65,-0.00), (130.00,12.50), (130.00,0.00))
+make_hand_shape("hour_hand", 90, 25)
+((-13.50,0.00), (90.00,0.00), (90.00,-12.50), (111.65,-0.00), (90.00,12.50), (90.00,0.00))
+
+"""
+
+# line = builtin.to_py([[0,0], [1,1]])
+# line = [(0,0), (1,1)]  # seems to wok
+# line = ((0,0), (1,1))    # also works
+line = ((-18.75,0.00), (125.00,0.00), (125.00,-12.50), (146.65,-0.00), (125.00,12.50), (125.00,0.00))
+print(line)
+try:
+    window.addshape("linear", line)  # ok with jc-skulpt-stdlib.js
+    print('shape registered!')
+    t.shape("linear")
+    print('shape change')
+    t.pensize(10)
+    t.rt(90)
+    t.fd(100)
+    print('see turtle?')
+except Exception, e: print(e)
+
+
+
+# Oriental Daily 東方日報  8/11 娛樂
+</textarea>
+
 <textarea id="tree" class="hide">
 #!/usr/bin/env python3
 """      turtle-example-suite:
@@ -316,8 +395,11 @@ def setbgcolor():
     # color = hex_color(red.ycor() / (100 * scale), green.ycor() / (100 * scale), blue.ycor() / (100 * scale))
     # print(red.ycor(), green.ycor(), blue.ycor(), color)
     # print(red._color, green._color, blue._color)
-    color = hex_color(red._color[0], green._color[1], blue._color[2])
-    window.bgcolor(color)
+    # Method 1
+    # color = hex_color(red._color[0], green._color[1], blue._color[2])
+    # window.bgcolor(color)
+    # Method 2
+    window.bgcolor(red._color[0], green._color[1], blue._color[2]) # JC: this works!
 
 def main():
     global red, green, blue                         # global for setbgcolor()
@@ -616,15 +698,23 @@ def jump(distanz, winkel=0):
     pendown()
 
 def hand(laenge, spitze):
+    form = []            # JC: simulate begin_poly() and end_poly() by form
+    form.append(pos())
     fd(laenge*1.15)
+    form.append(pos())
     rt(90)
     fd(spitze/2.0)
+    form.append(pos())
     lt(120)
     fd(spitze)
+    form.append(pos())
     lt(120)
     fd(spitze)
+    form.append(pos())
     lt(120)
     fd(spitze/2.0)
+    form.append(pos())
+    return form
 
 # Create a turtle screen
 window = Screen()
@@ -641,14 +731,14 @@ def make_hand_shape(name, laenge, spitze):
     speed(0)     # JC, not required for Python3
     jump(-laenge*0.15)
     # begin_poly()    # Python3
-    hand(laenge, spitze)
+    # hand(laenge, spitze)
     # end_poly()      # Python3
     # hand_form = get_poly()  # Python3
     # hand_form = ((0,0), (1,1))  # This Skulpt version uses ((x,y), ...)
-    hand_form = ((-18.75,0.00), (125.00,0.00), (125.00,-12.50), (146.65,-0.00), (125.00,12.50), (125.00,0.00))
-    # print(hand_form)
+    hand_form = hand(laenge, spitze)
+    print(hand_form)
     # register_shape(name, hand_form) # Python3
-    # window.register_shape(name, hand_form) # JC  invalid exception object! cannot resolve this.
+    window.register_shape(name, hand_form) # JC  invalid exception object! cannot resolve this.
 
 """
 make_hand_shape("second_hand", 125, 25)
@@ -657,6 +747,20 @@ make_hand_shape("minute_hand",  130, 25)
 ((-19.50,0.00), (130.00,0.00), (130.00,-12.50), (151.65,-0.00), (130.00,12.50), (130.00,0.00))
 make_hand_shape("hour_hand", 90, 25)
 ((-13.50,0.00), (90.00,0.00), (90.00,-12.50), (111.65,-0.00), (90.00,12.50), (90.00,0.00))
+"""
+"""
+scale = 1.0000000
+[(-18.75, 0.0), (125.0, 0.0), (125.0, -12.5), (146.650635095, 0.0), (125.0, 12.5), (125.0, 0.0)]
+((-18.75, 0.0), (125.0, 0.0), (125.0, -12.5), (146.65, -0.0), (125.0, 12.5), (125.0, 0.0))
+[(-19.5, 0.0), (130.0, 0.0), (130.0, -12.5), (151.650635095, 0.0), (130.0, 12.5), (130.0, 0.0)]
+((-18.75, 0.0), (125.0, 0.0), (125.0, -12.5), (146.65, -0.0), (125.0, 12.5), (125.0, 0.0))
+[(-13.5, 0.0), (90.0, 0.0), (90.0, -12.5), (111.650635095, 0.0), (90.0, 12.5), (90.0, 0.0)]
+((-18.75, 0.0), (125.0, 0.0), (125.0, -12.5), (146.65, -0.0), (125.0, 12.5), (125.0, 0.0))
+
+scale = 1.8000000
+[(-33.75, 0.0), (225.0, 0.0), (225.0, -12.5), (246.650635095, 0.0), (225.0, 12.5), (225.0, 0.0)]
+[(-35.1, 0.0), (234.0, 0.0), (234.0, -12.5), (255.650635095, 0.0), (234.0, 12.5), (234.0, 0.0)]
+[(-24.3, 0.0), (162.0, 0.0), (162.0, -12.5), (183.650635095, 0.0), (162.0, 12.5), (162.0, 0.0)]
 """
 
 def clockface(radius):
@@ -698,7 +802,8 @@ def setup():
     # writer.mode("logo")
     writer.ht()
     writer.pu()
-    writer.bk(85)
+    # writer.bk(85) # for logo mode, no need
+    writer.speed(0) # JC: to prevent flickers
 
 def wochentag(t):
     wochentag = ["Monday", "Tuesday", "Wednesday",
@@ -719,43 +824,65 @@ def tick():
     minute = t.minute + sekunde/60.0
     stunde = t.hour + minute/60.0
     try:
-        tracer(False)  # Terminator can occur here
+        # tracer(False)  # Terminator can occur here
         writer.clear()
         writer.home()
-        writer.forward(65)
+        writer.lt(90)  # JC: logo mode heads north
+        writer.forward(65 * scale)
+        # weekday on top
         writer.write(wochentag(t),
                      align="center", font=("Courier", 14, "bold"))
-        writer.back(150)
+        writer.back(150 * scale) # JC: due to logo mode
+        # date on bottom
         writer.write(datum(t),
                      align="center", font=("Courier", 14, "bold"))
-        writer.forward(85)
-        second_hand.setheading(6*sekunde)  # or here
-        minute_hand.setheading(6*minute)
-        hour_hand.setheading(30*stunde)
-        tracer(True)
+        writer.forward(85 * scale)
+        second_hand.setheading(-6*sekunde)  # JC: use -ve due to logo mode
+        minute_hand.setheading(-6*minute)   # JC: use -ve due to logo mode
+        hour_hand.setheading(-30*stunde)    # JC: use -ve due to logo mode
+        # tracer(True)
         # ontimer(tick, 100)   # Python3
         window.ontimer(tick, 100)  # JC
+        update()  # JC: replaces tracer(True) and tracer(False)
     except Terminator:
         pass  # turtledemo user pressed STOP
 
 def main():
-    tracer(False)
+    tracer(0)  # JC: this is much better, later with update()
+    # tracer(False)   # JC: remove
     setup()
-    tracer(True)
+    # tracer(True)    # JC: remove
     tick()
     return "EVENTLOOP"
 
 main()
 
 """
-t = Turtle()
-w = Screen()
-print(w.getshapes())
-# ['arrow', 'square', 'triangle', 'classic', 'turtle', 'circle']
-"""
+ turtle.mode(mode=None)
 
+    Parameters
+
+        mode – one of the strings “standard”, “logo” or “world”
+
+    Set turtle mode (“standard”, “logo” or “world”) and perform reset. If mode is not given, current mode is returned.
+
+    Mode “standard” is compatible with old turtle.
+    Mode “logo” is compatible with most Logo turtle graphics.
+    Mode “world” uses user-defined “world coordinates”. Attention: in this mode angles appear distorted if x/y unit-ratio doesn’t equal 1.
+
+    Mode           Initial turtle heading    positive angles
+    -----------    ----------------------    ---------------
+    “standard”     to the right (east)       counterclockwise
+    “logo”         upward (north)            clockwise
+
+Skulpt has "standard" (default) and "world" modes.
+"""
 # Cannot make register_shape to work.
 # Final info display is still one single line.
+# After fixing register_shape, and recording the hand positions,
+# this now works -- except that the hand goes anticlockwise, and date and weekday flickers.
+# looks like the clock is upside-down!  Due to original logo mode? Yes!
+# In setheading, use opposite angles. Remove flickering by tracer(0) then update().
 </textarea>
 
 <textarea id="sorts" class="hide">

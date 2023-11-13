@@ -573,6 +573,19 @@ This is where information about projects that use Skulpt goes.
 * CodeSkulptor   https://py3.codeskulptor.org/
 
 
+https://skulpt.org/js/skulpt.min.js     in demo/js/skulpt.min.js
+https://skulpt.org/js/skulpt-stdlib.js  in demo/js/skulpt-stdlib.js
+beautifier version                      in demo/js/beauty-skulpt.min.js
+beautifier version                      in demo/js/beauty-skulpt-stdlib.js
+
+In the Skulpt distribution, there are:
+skulpt/site/skulpt-stdlib.js
+skulpt/site/skulpt.js
+skulpt/site/simpleskulpt.html
+skulpt/site/site-skulpt.html
+skulpt/site/skulpt.html
+
+
 Pyscript DOM
 ------------
 PyDom: Pythonic DOM API
