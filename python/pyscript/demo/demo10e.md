@@ -31,7 +31,7 @@ header-includes: |
         }
     </style>
 include-before: |
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js" type="text/javascript"></script>
+    <script zsrc="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js" type="text/javascript"></script>
     <script zsrc="https://skulpt.org/js/skulpt.min.js" src="js/skulpt.min.js" xsrc="js/readable-skulpt.js" type="text/javascript"></script>
     <script zsrc="https://skulpt.org/js/skulpt-stdlib.js" src="js/jc-skulpt-stdlib.js" ysrc="js/skulpt-stdlib.js"  xsrc="js/readable-skulpt-stdlib.js" type="text/javascript"></script>
 include-after: |
@@ -58,6 +58,7 @@ Select an example:&nbsp; <select id="choice">
     <option value="sorts">Sorting</option>
     <option value="paint">Paint</option>
     <option value="kolam">Lindenmayer</option>
+    <option value="penrose">Penrose Tiling</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -160,6 +161,42 @@ try:
 except Exception, e: print(e)
 
 
+# get poly a triangle with side s
+def triangle(s):
+    poly = []
+    poly.append(pos())
+    for _ in range(3):
+        fd(s)
+        lt(120)  # interior 60, exterior 120
+        poly.append(pos())
+    return poly
+
+# get poly of a pentagram star with side s
+def pentagram(s):
+    poly = []
+    poly.append(pos())
+    for _ in range(5):
+        fd(s)
+        rt(-144)  # interior 36, exterior = 180 - 36 = 144, clockwise
+        poly.append(pos())
+    return poly
+
+try:
+    print('HERE')
+    reset()
+    showturtle()
+    poly = pentagram(50)
+    print(poly)
+    window.register_shape("pentagram", poly)
+    shape("pentagram")
+    fd(100)
+    print('DONE')
+except Exception, e: print(e)
+
+try:
+    row = [100.23, 200.45, 300.67]
+    print([i/100 for i in row])
+except Exception, e: print(e)
 
 # Oriental Daily 東方日報  8/11 娛樂
 </textarea>
@@ -272,13 +309,24 @@ scale = float(input('Please set a scale from 0.1 to 2.5 (default 2)') or '2')
 print('scale = %f' % scale) # Python 2.6 formatting
 # for the window above, best scale = 2
 
+# get poly of a pentagram star with side s
+def pentagram(s):
+    poly = []
+    poly.append(pos())
+    for _ in range(5):
+        fd(s)
+        rt(-144)  # interior 36, exterior = 180 - 36 = 144, clockwise
+        poly.append(pos())
+    return poly
+
 def stop():
     global running
     running = False
 
 def main():
     global running
-    tracer(False)
+    # tracer(False)   # Python3, works with later update() but slower
+    tracer(0)         # JC, with later update(). Much faster!
     shape("triangle")
     f =   0.793402
     phi = 9.064678
@@ -300,6 +348,12 @@ def main():
     shapesize(1)
     shape("multitri")
     """
+    # JC: try to make a 'compound' shape
+    poly = pentagram(50)
+    window.register_shape("pentagram", poly)
+    shape("pentagram")
+    reset()    # remove the pentagram star, then home()
+    # end JC
     pu()
     setpos(0, -200 * scale)
     dancers = []
@@ -334,6 +388,9 @@ def main():
     return "DONE!"
 
 main()
+
+# Note: Python3 demo example has compound shape.
+# For simple register_shape, the turtle shape is always filled, so no components.
 </textarea>
 
 <textarea id="mixer" class="hide">
@@ -823,6 +880,7 @@ def tick():
     sekunde = t.second + t.microsecond*0.000001
     minute = t.minute + sekunde/60.0
     stunde = t.hour + minute/60.0
+    sekunde = - sekunde  # JC: negate for clockwise, now not in logo mode
     try:
         # tracer(False)  # Terminator can occur here
         writer.clear()
@@ -832,14 +890,14 @@ def tick():
         # weekday on top
         writer.write(wochentag(t),
                      align="center", font=("Courier", 14, "bold"))
-        writer.back(150 * scale) # JC: due to logo mode
+        writer.back(150 * scale)
         # date on bottom
         writer.write(datum(t),
                      align="center", font=("Courier", 14, "bold"))
         writer.forward(85 * scale)
-        second_hand.setheading(-6*sekunde)  # JC: use -ve due to logo mode
-        minute_hand.setheading(-6*minute)   # JC: use -ve due to logo mode
-        hour_hand.setheading(-30*stunde)    # JC: use -ve due to logo mode
+        second_hand.setheading(6*sekunde)
+        minute_hand.setheading(6*minute)
+        hour_hand.setheading(30*stunde)
         # tracer(True)
         # ontimer(tick, 100)   # Python3
         window.ontimer(tick, 100)  # JC
@@ -877,11 +935,11 @@ main()
 
 Skulpt has "standard" (default) and "world" modes.
 """
-# Cannot make register_shape to work.
-# Final info display is still one single line.
+# Cannot make register_shape to work. Due to missing co_varnames for register_shape in standard library. Fixed in js-skulpt-stdlib.js.
+# Final info display is still one single line. Due to lacking "logo" mode. Need turtle facing north at start for proper writing.
 # After fixing register_shape, and recording the hand positions,
 # this now works -- except that the hand goes anticlockwise, and date and weekday flickers.
-# looks like the clock is upside-down!  Due to original logo mode? Yes!
+# Looks like the clock is upside-down!  Due to original logo mode? Yes!
 # In setheading, use opposite angles. Remove flickering by tracer(0) then update().
 </textarea>
 
@@ -916,13 +974,18 @@ class Block(Turtle):
     def __init__(self, size):
         self.size = size
         # Turtle.__init__(self, shape="square", visible=False)  # Python3
-        Turtle.__init__(self)  # JC: add this
+        Turtle.__init__(self)  # JC: add this        
         self.shape("square")   # JC
         self.hideturtle()      # JC
         self.pu()
         # self.shapesize(size * 1.5, 1.5, 2) # square to rectangle  # Python3
         self.fillcolor("black")
         self.st()
+        # JC: change the square to rectangle, see Shelf.push() for height and width
+        name = 'block' + str(size)
+        poly = [(0,0), (size * 10, 0), (size * 10, 32), (0, 32), (0,0)]
+        window.register_shape(name, poly)
+        self.shape(name)
 
     def glow(self):
         self.fillcolor("red")
@@ -951,7 +1014,8 @@ class Shelf(list):
         # width, _, _ = d.shapesize()   # Python3
         width = d.size                  # JC: use this
         # align blocks by the bottom edge
-        y_offset = width / 2 * 20
+        # y_offset = width / 2 * 20    # Skulpt has integer divison
+        y_offset = width * 10          # JC: modify
         d.sety(self.y + y_offset)
         d.setx(self.x + 34 * len(self))
         self.append(d)
@@ -980,7 +1044,8 @@ class Shelf(list):
         # width, _, _ = b.shapesize()  # Python3
         width = b.size                 # JC
         # align blocks by the bottom edge
-        y_offset = width / 2 * 20
+        # y_offset = width / 2 * 20    # Skulpt has integer divison
+        y_offset = width * 10          # JC: modify
         b.sety(self.y + y_offset)
         b.unglow()
 
@@ -1312,6 +1377,239 @@ def main():
     return "Done!"
 
 main()
+</textarea>
+
+<textarea id="penrose" class="hide">
+#!/usr/bin/env python3
+"""       xturtle-example-suite:
+
+          xtx_kites_and_darts.py
+
+Constructs two aperiodic penrose-tilings,
+consisting of kites and darts, by the method
+of inflation in six steps.
+
+Starting points are the patterns "sun"
+consisting of five kites and "star"
+consisting of five darts.
+
+For more information see:
+ http://en.wikipedia.org/wiki/Penrose_tiling
+ -------------------------------------------
+"""
+from turtle import *
+from math import cos, pi, sqrt
+from time import sleep
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# No need to scale for tiling.
+
+f = (sqrt(5)-1)/2.0   # golden ratio
+d = 2 * cos(3*pi/10)
+
+# JC: return poly path of kite
+def kite(l):
+    poly = []
+    poly.append(pos())
+    fl = f * l
+    lt(36)
+    fd(l)
+    poly.append(pos())
+    rt(108)
+    fd(fl)
+    poly.append(pos())
+    rt(36)
+    fd(fl)
+    poly.append(pos())
+    rt(108)
+    fd(l)
+    poly.append(pos())
+    rt(144)
+    return poly
+
+# JC: return poly path of dart
+def dart(l):
+    poly = []
+    poly.append(pos())
+    fl = f * l
+    lt(36)
+    fd(l)
+    poly.append(pos())
+    rt(144)
+    fd(fl)
+    poly.append(pos())
+    lt(36)
+    fd(fl)
+    poly.append(pos())
+    rt(144)
+    fd(l)
+    poly.append(pos())
+    rt(144)
+    return poly
+
+# global constants
+kite_poly = None
+dart_poly = None
+
+# multiply a tuple by n
+def multiply(pair, n):
+    x, y = pair
+    return (1.0 * x * n, 1.0 * y * n)  # ensure floats in Skulpt
+
+# mimic Python3 shapesize
+def shapesize(a, b, th):
+    global kite_poly, dart_poly
+    # this program has only two shapes: kite and dart
+    # and the only call has a = b, so ignore b and th
+    # just stretch each shape by a factor a.
+    poly = [multiply(i,a) for i in kite_poly]
+    window.register_shape("kite", poly)
+    poly = [multiply(i,a) for i in dart_poly]
+    window.register_shape("dart", poly)
+
+def inflatekite(l, n):
+    if n == 0:
+        px, py = pos()
+        h, x, y = int(heading()), round(px,3), round(py,3)
+        tiledict[(h,x,y)] = True
+        return
+    fl = f * l
+    lt(36)
+    inflatedart(fl, n-1)
+    fd(l)
+    rt(144)
+    inflatekite(fl, n-1)
+    lt(18)
+    fd(l*d)
+    rt(162)
+    inflatekite(fl, n-1)
+    lt(36)
+    fd(l)
+    rt(180)
+    inflatedart(fl, n-1)
+    lt(36)
+
+def inflatedart(l, n):
+    if n == 0:
+        px, py = pos()
+        h, x, y = int(heading()), round(px,3), round(py,3)
+        tiledict[(h,x,y)] = False
+        return
+    fl = f * l
+    inflatekite(fl, n-1)
+    lt(36)
+    fd(l)
+    rt(180)
+    inflatedart(fl, n-1)
+    lt(54)
+    fd(l*d)
+    rt(126)
+    inflatedart(fl, n-1)
+    fd(l)
+    rt(144)
+
+def draw(l, n, th=2):
+    clear()
+    lt(90)         # JC: logo mode starts with turtle facing north
+    l = l * f**n
+    # shapesize(l/100.0, l/100.0, th)  # Python3
+    # JC: due to no change in shapesize, there is no tiling!
+    shapesize(l/100.0, l/100.0, th)  # now use JC version
+    # if n < 2: print('tiledict', tiledict)    # print this only at start
+    # n = 0:
+    # ('tiledict', {(90, 0.0, 0.0): True, (162, 0.0, 0.0): True, (234, 0.0, 0.0): True, (306, 0.0, 0.0): True, (18, 0.0, 0.0): True})
+    # 5 kites and 0 darts = 5 pieces.
+    # n = 1:
+    # ('tiledict', {(126, 0.0, 0.0): False, (342, -176.336, 242.705): True, (198, 176.336, 242.705): True, (54, 0.0, 0.0): False, (198, 0.0, 0.0): False, (54, -285.317, -92.705): True, (270, -176.336, 242.705): True, (270, 0.0, -0.0): False, (126, 0.0, -300.0): True, (342, -285.317, -92.705): True, (342, 0.0, 0.0): False, (198, 285.317, -92.705): True, (54, -0.0, -300.0): True, (270, 176.336, 242.705): True, (126, 285.317, -92.705): True})
+    # 10 kites and 5 darts = 15 pieces.
+    for k in tiledict:
+        h, x, y = k
+        setpos(x, y)
+        setheading(h)
+        if tiledict[k]:
+            shape("kite")
+            color("black", (0, 0.75, 0))
+        else:
+            shape("dart")
+            color("black", (0.75, 0, 0))
+        stamp()  # mark this
+
+def sun(l, n):
+    for i in range(5):
+        inflatekite(l, n)
+        lt(72)
+
+def star(l,n):
+    for i in range(5):
+        inflatedart(l, n)
+        lt(72)
+
+def makeshapes():
+    global kite_poly, dart_poly
+    tracer(0)
+    # begin_poly()   # Python3
+    kite_poly = kite(100 ) # JC
+    # end_poly()     # Python3
+    # register_shape("kite", get_poly())  # Python3
+    window.register_shape("kite", kite_poly)   # JC: modify
+    # begin_poly()   # Python3
+    dart_poly = dart(100) # JC
+    # end_poly()     # Python3
+    # register_shape("dart", get_poly())  # Python3
+    window.register_shape("dart", dart_poly)   # JC: modify
+    tracer(1)
+
+def start():
+    reset()
+    lt(90)   # JC: logo mode starts with turtle facing north
+    ht()
+    pu()
+    makeshapes()
+    # resizemode("user")   # Python3
+
+def test(l=200, n=4, fun=sun, startpos=(0,0), th=2):
+    global tiledict
+    goto(startpos)
+    setheading(0)
+    lt(90)         # JC: logo mode starts with turtle facing north
+    tiledict = {}
+    tracer(0)
+    fun(l, n)
+    draw(l, n, th)
+    tracer(1)
+    nk = len([x for x in tiledict if tiledict[x]])
+    nd = len([x for x in tiledict if not tiledict[x]])
+    print("%d kites and %d darts = %d pieces." % (nk, nd, nk+nd))
+
+def demo(fun=sun):
+    start()
+    for i in range(8):
+        test(300, i, fun)
+
+def main():
+    # title("Penrose-tiling with kites and darts.")
+    # mode("logo")          # Python3
+    # bgcolor(0.3, 0.3, 0)  # Python3
+    window.bgcolor(0.3, 0.3, 0)  # JC
+    demo(sun)
+    sleep(2)
+    demo(star)
+    pencolor("black")
+    goto(0,-200)
+    pencolor(0.7,0.7,1)
+    write("Please wait...",
+          align="center", font=('Arial Black', 36, 'bold'))
+    test(600, 8, startpos=(70, 117))
+    return "Done"
+
+main()
+
+# Unable to do shapesize(), so there is no actual tiling.
+# Now work out shapesize(), and there is actual tiling!
 </textarea>
 
 
