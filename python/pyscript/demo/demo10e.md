@@ -59,6 +59,9 @@ Select an example:&nbsp; <select id="choice">
     <option value="paint">Paint</option>
     <option value="kolam">Lindenmayer</option>
     <option value="penrose">Penrose Tiling</option>
+    <option value="peace">Peace Flag Symbol</option>
+    <option value="rosette">Rosette</option>
+    <option value="nim">Nim Game</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -197,6 +200,27 @@ try:
     row = [100.23, 200.45, 300.67]
     print([i/100 for i in row])
 except Exception, e: print(e)
+
+try:
+    from random import choice
+    COLORS = ["orange", "blue", "green", "purple", "dark blue"]
+
+    hideturtle()
+    speed('fastest')
+
+    setundobuffer(100) # need this in Skulpt
+    for _ in range(20):
+        pencolor(choice(COLORS))
+        circle(50)
+        left(20)
+
+    tracer(20)  # value unrelated to either 20 above
+    print(undobufferentries()) # just a zero, 0.
+    while undobufferentries() > 1:
+        undo()  # undo everything but hideturtle()
+    tracer(1)
+except Exception, e: print e
+
 
 # Oriental Daily 東方日報  8/11 娛樂
 </textarea>
@@ -1610,6 +1634,432 @@ main()
 
 # Unable to do shapesize(), so there is no actual tiling.
 # Now work out shapesize(), and there is actual tiling!
+</textarea>
+
+<textarea id="peace" class="hide">
+#!/usr/bin/env python3
+"""       turtle-example-suite:
+
+              tdemo_peace.py
+
+A simple drawing suitable as a beginner's
+programming example. Aside from the
+peacecolors assignment and the for loop,
+it only uses turtle commands.
+"""
+
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+# window.bgcolor("yellow") # keep white background
+
+# no need to scale
+
+def main():
+    # peacecolors = ("red3",  "orange", "yellow", "seagreen4", "orchid4", "royalblue1", "dodgerblue4")
+    peacecolors = ("#cd0000",  "orange", "yellow", "#2e8b57", "#da70d6", "#4169e1", "#104e8b")
+
+    reset()
+    Screen()
+    up()
+    goto(-320,-195)
+    width(70)
+
+    for pcolor in peacecolors:
+        color(pcolor)
+        down()
+        forward(640)
+        up()
+        backward(640)
+        left(90)
+        forward(66)
+        right(90)
+
+    width(25)
+    color("white")
+    goto(0,-170)
+    down()
+
+    circle(170)
+    left(90)
+    forward(340)
+    up()
+    left(180)
+    forward(170)
+    right(45)
+    down()
+    forward(170)
+    up()
+    backward(170)
+    left(90)
+    down()
+    forward(170)
+    up()
+
+    goto(0,300) # vanish if hideturtle() is not available ;-)
+    return "Done!"
+
+main()
+
+# This Skulpt has fewer colors, so "seagreen4", "orchid4", "royalblue1", "dodgerblue4" all keep the last color, which is "yellow".
+# Use hex colors.
+</textarea>
+
+<textarea id="rosette" class="hide">
+"""      turtle-example-suite:
+
+          tdemo_wikipedia3.py
+
+This example is
+inspired by the Wikipedia article on turtle
+graphics. (See example wikipedia1 for URLs)
+
+First we create (ne-1) (i.e. 35 in this
+example) copies of our first turtle p.
+Then we let them perform their steps in
+parallel.
+
+Followed by a complete undo().
+"""
+
+from turtle import *
+from time import sleep
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+def mn_eck(p, ne, sz):
+    turtlelist = [p]
+    # create ne-1 additional turtles
+    for i in range(1, ne):
+        q = p.clone()
+        q.rt(360.0/ne)
+        turtlelist.append(q)
+        p = q
+
+    for i in range(ne):
+        c = abs(ne/2.0 - i)/(ne * 0.7)
+        # let those ne turtles make a step in parallel:
+        for t in turtlelist:
+            t.rt(360./ne)
+            t.pencolor(1-c, 0, c)
+            t.fd(sz)
+
+def main():
+    p = Turtle()
+    p.speed(0)
+    p.hideturtle()
+    p.pencolor("red")
+    p.pensize(3)
+    p.setundobuffer(50) # JC: putting this will trigger while loop 3 times, and slower
+
+    window.tracer(36, 0)
+
+    mn_eck(p, 36, 19 * scale)
+
+    sleep(1)
+
+    print('Window has %d turtles.' % len(window.turtles()))
+    while any(t.undobufferentries() for t in window.turtles()):
+        for t in window.turtles():
+            # print('undo buffer: %d' % t.undobufferentries())
+            t.undo()
+        sleep(0.1)
+        update()
+        # undo leave a last circle?!
+    """
+    # This doesn't work.
+    print('Window has %d turtles.' % len(window.turtles()))
+    for t in window.turtles():
+        while t.undobufferentries():
+            print('undo buffer: %d' % t.undobufferentries())
+            t.undo()
+    """        
+
+main()
+# undo works, but too fast!
+</textarea>
+
+<textarea id="nim" class="hide">
+"""      turtle-example-suite:
+
+            tdemo_nim.py
+
+Play nim against the computer. The player
+who takes the last stick is the winner.
+
+Implements the model-view-controller
+design pattern.
+"""
+
+import turtle
+import random
+import time
+
+# SCREENWIDTH = 640
+# SCREENHEIGHT = 480
+SCREENWIDTH = 1000
+SCREENHEIGHT = 1000
+
+# No need to scale
+
+MINSTICKS = 7
+MAXSTICKS = 31
+
+HUNIT = SCREENHEIGHT // 12
+WUNIT = SCREENWIDTH // ((MAXSTICKS // 5) * 11 + (MAXSTICKS % 5) * 2)
+
+# Python3:
+# SCOLOR = (63, 63, 31)
+# HCOLOR = (255, 204, 204)
+# COLOR = (204, 204, 255)
+# Skulpt: has fraction colors, and / is integer divsion unless floats.
+SCOLOR = (63./255, 63./255, 31./255)
+HCOLOR = (255./255, 204./255, 204./255)
+COLOR = (204./255, 204./255, 255./255)
+
+
+# Create a turtle screen
+window = turtle.Screen()
+# window.setup(1000, 1000) # default (500, 500)
+window.setup(SCREENWIDTH, SCREENHEIGHT)
+# window.bgcolor("yellow") # JC: will set in NimView
+
+# use a scale to enlarge or shrink
+# scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+# print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+# ???
+
+def randomrow():
+    return random.randint(MINSTICKS, MAXSTICKS)
+
+def computerzug(state):
+    xored = state[0] ^ state[1] ^ state[2]
+    if xored == 0:
+        return randommove(state)
+    for z in range(3):
+        s = state[z] ^ xored
+        if s <= state[z]:
+            move = (z, s)
+            return move
+
+def randommove(state):
+    m = max(state)
+    while True:
+        z = random.randint(0,2)
+        if state[z] > (m > 1):
+            break
+    rand = random.randint(m > 1, state[z]-1)
+    return z, rand
+
+
+class NimModel(object):
+    def __init__(self, game):
+        self.game = game
+
+    def setup(self):
+        if self.game.state not in [Nim.CREATED, Nim.OVER]:
+            return
+        self.sticks = [randomrow(), randomrow(), randomrow()]
+        print('sticks: ', self.sticks)
+        self.player = 0
+        self.winner = None
+        self.game.view.setup()
+        self.game.state = Nim.RUNNING
+
+    def move(self, row, col):
+        maxspalte = self.sticks[row]
+        self.sticks[row] = col
+        self.game.view.notify_move(row, col, maxspalte, self.player)
+        if self.game_over():
+            self.game.state = Nim.OVER
+            self.winner = self.player
+            self.game.view.notify_over()
+        elif self.player == 0:
+            self.player = 1
+            row, col = computerzug(self.sticks)
+            self.move(row, col)
+            self.player = 0
+
+    def game_over(self):
+        return self.sticks == [0, 0, 0]
+
+    def notify_move(self, row, col):
+        if self.sticks[row] <= col:
+            return
+        self.move(row, col)
+
+
+# define a stick shape
+def makeStickShape():
+    # self.shape("square")
+    # self.shapesize(HUNIT/10.0, WUNIT/20.0)  # Python3 
+    # turtle square has poly: [(10,-10),(10,10),(-10,10),(-10, -10)];
+    # shapesize stretches each (x,y), x by factor HUNIT/10, y by factor WUNIT/20
+    # hence the stick poly is: [(HUNIT, -WUNIT/2), ... ]
+    window.register_shape('stick', [(HUNIT, -WUNIT/2), (HUNIT, WUNIT/2), (-HUNIT, WUNIT/2), (-HUNIT, -WUNIT/2)])
+
+class Stick(turtle.Turtle):
+    def __init__(self, row, col, game):
+        # turtle.Turtle.__init__(self, visible=False)  # Python3
+        turtle.Turtle.__init__(self)       # JC
+        self.hideturtle()                  # JC
+        self.row = row
+        self.col = col
+        self.game = game
+        x, y = self.coords(row, col)
+        # self.shape("square")
+        # self.shapesize(HUNIT/10.0, WUNIT/20.0)  # Python3
+        self.shape("stick")
+        self.speed(0)
+        self.pu()
+        self.goto(x,y)
+        self.color("white")
+        self.showturtle()
+
+    def coords(self, row, col):
+        packet, remainder = divmod(col, 5)
+        x = (3 + 11 * packet + 2 * remainder) * WUNIT
+        y = (2 + 3 * row) * HUNIT
+        return x - SCREENWIDTH // 2 + WUNIT // 2, SCREENHEIGHT // 2 - y - HUNIT // 2
+
+    def makemove(self, x, y):
+        if self.game.state != Nim.RUNNING:
+            return
+        self.game.controller.notify_move(self.row, self.col)
+
+
+class NimView(object):
+    def __init__(self, game):
+        self.game = game
+        self.screen = game.screen
+        self.model = game.model
+        # self.screen.colormode(255)  # Python3
+        self.screen.tracer(False)
+        # self.screen.bgcolor(240, 240, 255) # JC
+        self.screen.bgcolor(240./255, 240./255, 1.0)
+        print('set bgcolor')
+        # self.writer = turtle.Turtle(visible=False)  # Python3
+        self.writer = turtle.Turtle()   # JC
+        self.writer.hideturtle()        # JC
+        self.writer.pu()
+        self.writer.speed(0)
+        self.sticks = {}
+        for row in range(3):
+            for col in range(MAXSTICKS):
+                self.sticks[(row, col)] = Stick(row, col, game)
+        self.display("... a moment please ...")
+        self.screen.tracer(True)
+
+    def display(self, msg1, msg2=None):
+        self.screen.tracer(False)
+        self.writer.clear()
+        if msg2 is not None:
+            self.writer.goto(0, - SCREENHEIGHT // 2 + 48)
+            self.writer.pencolor("red")
+            self.writer.write(msg2, align="center", font=("Courier",18,"bold"))
+        self.writer.goto(0, - SCREENHEIGHT // 2 + 20)
+        self.writer.pencolor("black")
+        self.writer.write(msg1, align="center", font=("Courier",14,"bold"))
+        self.screen.tracer(True)
+
+    def setup(self):
+        self.screen.tracer(False)
+        for row in range(3):
+            for col in range(self.model.sticks[row]):
+                self.sticks[(row, col)].color(SCOLOR)
+        for row in range(3):
+            for col in range(self.model.sticks[row], MAXSTICKS):
+                self.sticks[(row, col)].color("white")
+        self.display("Your turn! Click leftmost stick to remove.")
+        self.screen.tracer(True)
+
+    def notify_move(self, row, col, maxspalte, player):
+        if player == 0:
+            farbe = HCOLOR
+            for s in range(col, maxspalte):
+                self.sticks[(row, s)].color(farbe)
+        else:
+            self.display(" ... thinking ...         ")
+            time.sleep(0.5)
+            self.display(" ... thinking ... aaah ...")
+            farbe = COLOR
+            for s in range(maxspalte-1, col-1, -1):
+                time.sleep(0.2)
+                self.sticks[(row, s)].color(farbe)
+            self.display("Your turn! Click leftmost stick to remove.")
+
+    def notify_over(self):
+        if self.game.model.winner == 0:
+            msg2 = "Congrats. You're the winner!!!"
+        else:
+            msg2 = "Sorry, the computer is the winner."
+        self.display("To play again press space bar. To leave press ESC.", msg2)
+
+    def clear(self):
+        if self.game.state == Nim.OVER:
+            self.screen.clear()
+
+
+class NimController(object):
+
+    def __init__(self, game):
+        self.game = game
+        self.sticks = game.view.sticks
+        self.BUSY = False
+        for stick in self.sticks.values():
+            stick.onclick(stick.makemove)
+        self.game.screen.onkey(self.game.model.setup, "space")
+        self.game.screen.onkey(self.game.view.clear, "Escape")
+        self.game.view.display("Press space bar to start game")
+        self.game.screen.listen()
+
+    def notify_move(self, row, col):
+        if self.BUSY:
+            return
+        self.BUSY = True
+        self.game.model.notify_move(row, col)
+        self.BUSY = False
+
+
+class Nim(object):
+    CREATED = 0
+    RUNNING = 1
+    OVER = 2
+    def __init__(self, screen):
+        self.state = Nim.CREATED
+        self.screen = screen
+        print('set screen')
+        self.model = NimModel(self)
+        print('set model')
+        self.view = NimView(self)
+        print('set view')
+        self.controller = NimController(self)
+        print('set controller')
+
+def main():
+    # mainscreen = turtle.Screen()
+    # mainscreen.mode("standard")   # Python3
+    # mainscreen.setup(SCREENWIDTH, SCREENHEIGHT)
+    # nim = Nim(mainscreen)
+    makeStickShape() # JC: to replace shapesize
+    nim = Nim(window)
+    return "EVENTLOOP"
+
+main()
+
+# Note: with makeStickShape(), the sticks are the same as Python3 Demo example.
+# With fractional SCOLOR, HCOLOR and COLOR, all colors are correct, and plays a perfect Nim game.
 </textarea>
 
 
