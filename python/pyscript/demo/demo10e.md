@@ -62,6 +62,8 @@ Select an example:&nbsp; <select id="choice">
     <option value="peace">Peace Flag Symbol</option>
     <option value="rosette">Rosette</option>
     <option value="nim">Nim Game</option>
+    <option value="ying">YinYang</option>
+    <option value="fractal">Fractal Curves</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -2062,7 +2064,221 @@ main()
 # With fractional SCOLOR, HCOLOR and COLOR, all colors are correct, and plays a perfect Nim game.
 </textarea>
 
+<textarea id="ying" class="hide">
+#!/usr/bin/env python3
+"""       turtle-example-suite:
 
+            tdemo_yinyang.py
+
+Another drawing suitable as a beginner's
+programming example.
+
+The small circles are drawn by the circle
+command.
+
+"""
+
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+def yin(radius, color1, color2):
+    width(3)
+    color("black", color1)  # Python3 or Skulpt
+    # color("black"); fillcolor(color1)    # JC
+    begin_fill()
+    circle(radius/2., 180)
+    circle(radius, 180)
+    left(180)
+    circle(-radius/2., 180)
+    end_fill()
+    left(90)
+    up()
+    forward(radius*0.35)
+    right(90)
+    down()
+    color(color1, color2)   # Python3 or Skulpt
+    # color(color1); fillcolor(color2)    # JC
+    begin_fill()
+    circle(radius*0.15)
+    end_fill()
+    left(90)
+    up()
+    backward(radius*0.35)
+    down()
+    left(90)
+
+def main():
+    reset()
+    yin(200 * scale, "black", "white")
+    yin(200 * scale, "white", "black")
+    ht()
+    return "Done!"
+
+main()
+
+# Note: need to split Python3 color(pen, fill) into color(pen); fillcolor(fill)  for Trinket
+# There is no need to split this for color(pen, fill) in Skulpt!
+</textarea>
+
+<textarea id="fractal" class="hide">
+#!/usr/bin/env python3
+"""      turtle-example-suite:
+
+        tdemo_fractalCurves.py
+
+This program draws two fractal-curve-designs:
+(1) A hilbert curve (in a box)
+(2) A combination of Koch-curves.
+
+The CurvesTurtle class and the fractal-curve-
+methods are taken from the PythonCard example
+scripts for turtle-graphics.
+"""
+
+from turtle import *
+from time import sleep    # JC
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+# class CurvesTurtle(Pen):   # Python3 original
+class CurvesTurtle(Turtle):  # JC
+    # example derived from
+    # Turtle Geometry: The Computer as a Medium for Exploring Mathematics
+    # by Harold Abelson and Andrea diSessa
+    # p. 96-98
+    def hilbert(self, size, level, parity):
+        if level == 0:
+            return
+        # rotate and draw first subcurve with opposite parity to big curve
+        self.left(parity * 90)
+        self.hilbert(size, level - 1, -parity)
+        # interface to and draw second subcurve with same parity as big curve
+        self.forward(size)
+        self.right(parity * 90)
+        self.hilbert(size, level - 1, parity)
+        # third subcurve
+        self.forward(size)
+        self.hilbert(size, level - 1, parity)
+        # fourth subcurve
+        self.right(parity * 90)
+        self.forward(size)
+        self.hilbert(size, level - 1, -parity)
+        # a final turn is needed to make the turtle
+        # end up facing outward from the large square
+        self.left(parity * 90)
+
+    # Visual Modeling with Logo: A Structural Approach to Seeing
+    # by James Clayson
+    # Koch curve, after Helge von Koch who introduced this geometric figure in 1904
+    # p. 146
+    def fractalgon(self, n, rad, lev, dir):
+        import math
+
+        # if dir = 1 turn outward
+        # if dir = -1 turn inward
+        edge = 2 * rad * math.sin(math.pi / n)
+        self.pu()
+        self.fd(rad)
+        self.pd()
+        self.rt(180 - (90 * (n - 2) / n))
+        for i in range(n):
+            self.fractal(edge, lev, dir)
+            self.rt(360 / n)
+        self.lt(180 - (90 * (n - 2) / n))
+        self.pu()
+        self.bk(rad)
+        self.pd()
+
+    # p. 146
+    def fractal(self, dist, depth, dir):
+        if depth < 1:
+            self.fd(dist)
+            return
+        self.fractal(dist / 3, depth - 1, dir)
+        self.lt(60 * dir)
+        self.fractal(dist / 3, depth - 1, dir)
+        self.rt(120 * dir)
+        self.fractal(dist / 3, depth - 1, dir)
+        self.lt(60 * dir)
+        self.fractal(dist / 3, depth - 1, dir)
+
+def main():
+    ft = CurvesTurtle()
+
+    ft.reset()
+    ft.speed(0)
+    ft.ht()
+    ft.getscreen().tracer(1,0)
+    ft.pu()
+
+    # Hilbert Curve
+    size = 6 * scale
+    ft.setpos(-33*size, -32*size)
+    ft.pd()
+
+    ft.fillcolor("red")
+    ft.begin_fill()
+    ft.fd(size)
+
+    print('Hilbert curve, size %d, level %d, parity %d' % (size, 6, 1))
+    ft.hilbert(size, 6, 1)
+
+    # frame the Hilbert Curve
+    ft.fd(size)
+    for i in range(3):
+        ft.lt(90)
+        ft.fd(size*(64+i%2))
+    ft.pu()
+    for i in range(2):
+        ft.fd(size)
+        ft.rt(90)
+    ft.pd()
+    for i in range(4):
+        ft.fd(size*(66+i%2))
+        ft.rt(90)
+    ft.end_fill() # of red
+
+    sleep(3)
+
+    ft.reset()
+    ft.speed(0)
+    ft.ht()
+    ft.getscreen().tracer(1,0)
+
+    # Koch curve
+    ft.color("black", "blue")  # Python3 color or Skulpt
+    # ft.color("black"); ft.fillcolor("blue")  # JC
+    print('Koch curve, order %d, size %d, level %d, direction %d' % (3, 250, 4, 1))
+    ft.begin_fill()
+    ft.fractalgon(3, 250 * scale, 4, 1)
+    ft.end_fill()
+    print('Koch curve, order %d, size %d, level %d, direction %d' % (3, 200, 4, 1))
+    ft.begin_fill()
+    ft.color("red")
+    ft.fractalgon(3, 200 * scale, 4, -1)
+    ft.end_fill()
+
+main()
+
+# Note: Fractal curves now have scaling for full view.
+</textarea>
 
 <!-- For graph output from Skulpt, not PyScript -->
 ::::{.board}
