@@ -64,6 +64,7 @@ Select an example:&nbsp; <select id="choice">
     <option value="nim">Nim Game</option>
     <option value="ying">YinYang</option>
     <option value="fractal">Fractal Curves</option>
+    <option value="gravity">Sun, Earth and Moon</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -2279,6 +2280,171 @@ main()
 
 # Note: Fractal curves now have scaling for full view.
 </textarea>
+
+<textarea id="gravity" class="hide">
+#!/usr/bin/env python3
+"""       turtle-example-suite:
+
+        tdemo_planets_and_moon.py
+
+Gravitational system simulation using the
+approximation method from Feynman-lectures,
+p.9-8, using turtlegraphics.
+
+Example: heavy central body, light planet,
+very light moon!
+Planet has a circular orbit, moon a stable
+orbit around the planet.
+
+You can hold the movement temporarily by
+pressing the left mouse button with the
+mouse over the scrollbar of the canvas.
+
+"""
+
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+G = 8 * scale  # JC: adjust gravity strength when applying scale
+
+# absolute value of a tuple
+def abs(pair):
+    x, y = pair
+    return (x * x + y * y) ** 0.5  # JC: without math.sqrt
+
+# add two tuples
+def add(pair1, pair2):
+    x1, y1 = pair1
+    x2, y2 = pair2
+    return (x1 + x2, y1 + y2)
+
+# multiply a tuple by n
+def multiply(pair, n):
+    x, y = pair
+    return (1.0 * x * n, 1.0 * y * n)  # ensure floats in Skulpt
+
+# poly for a unit circle
+unit_circle = [(1.,0.), (.951,.309), (.809,.588), (.588,.809), (.309,.951),
+               (0.,1.), (-.309,.951), (-.588,.809), (-.809,.588), (-.951,.309),
+               (-1.,0.), (-.951,-.309), (-.809,-.588), (-.588,-.809), (-.309,-.951),
+               (-0.,-1.), (.309,-.951), (.588,-.809), (.809,-.588), (.951,-.309),(1.,0.)]
+
+# get poly of a circle with radius r
+def circle_poly(r):
+    return [multiply(i,r) for i in unit_circle]
+
+class GravSys(object):
+    def __init__(self):
+        self.planets = []
+        self.t = 0
+        self.dt = 0.01
+    def init(self):
+        for p in self.planets:
+            p.init()
+    def start(self):
+        for i in range(10000):
+            self.t += self.dt
+            for p in self.planets:
+                p.step()
+
+class Star(Turtle):
+    # m = mass, initial location x, initial velocity v, gravity_system, shape name
+    def __init__(self, m, x, v, gravSys, shape):
+        # Turtle.__init__(self, shape=shape) # Python3
+        Turtle.__init__(self)  # JC
+        self.shape(shape)      # JC
+        self.penup()
+        # self.hideturtle()    # JC: cannot hide, otherwise they are invisible!
+        self.m = m
+        self.setpos(x)
+        self.v = v
+        gravSys.planets.append(self)
+        self.gravSys = gravSys
+        # self.resizemode("user")  # Python3
+        self.pendown()
+
+    def init(self):
+        dt = self.gravSys.dt
+        self.a = self.acc()
+        # self.v = self.v + 0.5*dt*self.a     # Python3
+        self.v = add(self.v, multiply(self.a, 0.5 * dt))  # JC
+
+    def acc(self):
+        # a = Vec(0,0)   # Python3
+        a = (0,0)        # JC
+        for planet in self.gravSys.planets:
+            if planet != self:
+                # v = planet.pos()-self.pos()    # Python3
+                x1, y1 = planet.pos()            # JC
+                x2, y2 = self.pos()              # JC
+                v = (x1 - x2, y1 - y2)           # JC
+                # a += (G*planet.m/abs(v)**3)*v  # Python3
+                a = add(a, multiply(v, G*planet.m/abs(v)**3))  # JC
+        return a
+
+    def step(self):
+        dt = self.gravSys.dt
+        # self.setpos(self.pos() + dt*self.v)    # Python3
+        self.setpos(add(self.pos(), multiply(self.v, dt)))  # JC
+        if self.gravSys.planets.index(self) != 0:
+            self.setheading(self.towards(self.gravSys.planets[0]))
+        self.a = self.acc()
+        # self.v = self.v + dt*self.a  # Python3
+        self.v = add(self.v, multiply(self.a, dt))  # JC
+
+
+## create compound yellow/blue turtleshape for planets
+def makeShapes():
+    # no compound shapes, just bigger or smaller circles
+    window.register_shape('sun', circle_poly(18))  # JC: from 10 * 1.8, sun.shapesize(1.8)
+    window.register_shape('earth', circle_poly(8)) # JC: from 10 * 0.8, earth.shapesize(0.8)
+    window.register_shape('moon', circle_poly(5))  # JC: from 10 * 0.5, moon.shapesize(0.5)
+
+def main():
+    makeShapes()
+
+    ## setup gravitational system
+    gs = GravSys()
+
+    # Sun
+    # sun = Star(1000000, Vec(0,0), Vec(0,-2.5), gs, "circle")  # Python3
+    sun = Star(1000000, (0,0), (0,-2.5), gs, "sun") # JC 
+    sun.color("red")      # JC: instead of "yellow"
+    # sun.shapesize(1.8)  # Python3
+    sun.pu()
+
+    # Earch
+    # earth = Star(12500, Vec(210,0), Vec(0,195), gs, "planet")  # Python3
+    earth = Star(12500, (210 * scale,0), (0,195), gs, "earth")  # JC
+    earth.color("brown")  # JC
+    earth.pencolor("green")
+    # earth.shapesize(0.8) # Python3
+    
+    # Moon
+    # moon = Star(1, Vec(220,0), Vec(0,295), gs, "planet")  # Python3
+    moon = Star(1, (220 * scale,0), (0,295), gs, "moon")  # JC
+    moon.color("orange")   # JC
+    moon.pencolor("blue")
+    # moon.shapesize(0.5)  # Python3
+    
+    gs.init()
+    gs.start()
+    return "Done!"
+
+main()
+
+# Note: a good simulation of graivty with turtles!
+</textarea>
+
 
 <!-- For graph output from Skulpt, not PyScript -->
 ::::{.board}
