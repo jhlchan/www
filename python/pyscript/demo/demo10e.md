@@ -1013,7 +1013,7 @@ class Block(Turtle):
         self.st()
         # JC: change the square to rectangle, see Shelf.push() for height and width
         name = 'block' + str(size)
-        poly = [(0,0), (size * 10, 0), (size * 10, 32), (0, 32), (0,0)]
+        poly = [(0,0), (size * 10, 0), (size * 10, 32), (0, 32)]
         window.register_shape(name, poly)
         self.shape(name)
 
@@ -1582,7 +1582,7 @@ def makeshapes():
     global kite_poly, dart_poly
     tracer(0)
     # begin_poly()   # Python3
-    kite_poly = kite(100 ) # JC
+    kite_poly = kite(100) # JC
     # end_poly()     # Python3
     # register_shape("kite", get_poly())  # Python3
     window.register_shape("kite", kite_poly)   # JC: modify
@@ -2687,9 +2687,39 @@ def makeDisk(n):
             (-15,15 * n), # end of semicircle, do straight part to another semicircle
             (-15, -15 * n + 15), (-14.27, -15 * n - 4.64), (-12.14, -15 * n - 8.82), (-8.82, -15 * n - 12.14), (-4.64, -15 * n - 14.27),
             (0, -15 * n - 15), (4.64, -15 * n - 14.27), (8.82, -15 * n - 12.14), (12.14, -15 * n - 8.82), (14.17, -15 * n - 4.64), (15, -15 * n)]
-    print(name, poly)
+    # print(name, poly)
     window.register_shape(name, poly)
     return name
+
+# make the Tower
+def makeTower():
+    """
+    # JC: use this to make and adjust the tower shape,
+    # then remove when the correct poly is printed.
+    poly = []
+    t = Turtle()
+    t.lt(90)               # turn 90 degree for orientation
+    t.backward(100 + 2.5)  # adjust horizontally for disks, with half-width 5/2
+    poly.append(t.pos())
+    t.fd(100)
+    poly.append(t.pos())
+    t.lt(90)
+    t.fd(250)
+    poly.append(t.pos())
+    t.rt(90)
+    t.fd(5)
+    poly.append(t.pos())
+    t.rt(90)
+    t.fd(250)
+    poly.append(t.pos())
+    t.lt(90)
+    t.fd(100)
+    poly.append(t.pos())
+    print('tower', poly)
+    # ('tower', [(0.0, -102.5), (0.0, -2.5), (-250.0, -2.5), (-250.0, 2.5), (0.0, 2.5), (0.0, 102.5)])
+    """
+    poly = [(0.0, -102.5), (0.0, -2.5), (-250.0, -2.5), (-250.0, 2.5), (0.0, 2.5), (0.0, 102.5)]
+    window.register_shape('tower', poly)
 
 class Disc(Turtle):
     def __init__(self, n):
@@ -2712,6 +2742,13 @@ class Tower(list):
     def setx(self, x):
         list.__init__(self)  # JC: this cannot be omitted for Tower(), can be omitted for Tower([])
         self.x = x
+        self.stand = Turtle()
+        self.stand.shape("tower")
+        self.stand.speed(0)
+        self.stand.hideturtle()
+        self.stand.penup()
+        self.stand.goto(x, -170) # JC: adjust for tower base
+        self.stand.showturtle()
     def push(self, d):
         d.setx(self.x)
         d.sety(-150+34*len(self))
@@ -2752,6 +2789,7 @@ def main():
     # t2 = Tower(0)
     # t3 = Tower(250)
     # JC: replace by these:
+    makeTower()
     t1 = Tower(); t1.setx(-250 * scale)
     t2 = Tower(); t2.setx(0 * scale)
     t3 = Tower(); t3.setx(250 * scale)
