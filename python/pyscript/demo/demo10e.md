@@ -65,6 +65,9 @@ Select an example:&nbsp; <select id="choice">
     <option value="ying">YinYang</option>
     <option value="fractal">Fractal Curves</option>
     <option value="gravity">Sun, Earth and Moon</option>
+    <option value="forest">Forest</option>
+    <option value="mirror">Two Turtles</option>
+    <option value="hanoi">Minimal Hanoi</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -2336,7 +2339,7 @@ def multiply(pair, n):
 unit_circle = [(1.,0.), (.951,.309), (.809,.588), (.588,.809), (.309,.951),
                (0.,1.), (-.309,.951), (-.588,.809), (-.809,.588), (-.951,.309),
                (-1.,0.), (-.951,-.309), (-.809,-.588), (-.588,-.809), (-.309,-.951),
-               (-0.,-1.), (.309,-.951), (.588,-.809), (.809,-.588), (.951,-.309),(1.,0.)]
+               (-0.,-1.), (.309,-.951), (.588,-.809), (.809,-.588), (.951,-.309)]
 
 # get poly of a circle with radius r
 def circle_poly(r):
@@ -2443,6 +2446,330 @@ def main():
 main()
 
 # Note: a good simulation of graivty with turtles!
+</textarea>
+
+<textarea id="forest" class="hide">
+#!/usr/bin/env python3
+"""     turtlegraphics-example-suite:
+
+             tdemo_forest.py
+
+Displays a 'forest' of 3 breadth-first-trees
+similar to the one in tree.
+For further remarks see tree.py
+
+This example is a 'breadth-first'-rewrite of
+a Logo program written by Erich Neuwirth. See
+http://homepage.univie.ac.at/erich.neuwirth/
+"""
+
+from turtle import *
+from random import randrange
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.2)') or '1.2')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.2, but the forest is random.
+
+def symRandom(n):
+    return randrange(-n,n+1)
+
+def randomize( branchlist, angledist, sizedist ):
+    return [ (angle+symRandom(angledist),
+              sizefactor*1.01**symRandom(sizedist))
+                     for angle, sizefactor in branchlist ]
+
+def randomfd( t, distance, parts, angledist ):
+    for i in range(parts):
+        t.left(symRandom(angledist))
+        t.forward( (1.0 * distance)/parts )
+
+def tree(tlist, size, level, widthfactor, branchlists, angledist=10, sizedist=5):
+    # (German) benutzt Liste von turtles und Liste von Zweiglisten,
+    # (German) fuer jede turtle eine!
+    # uses list of turtles and list of branch lists,
+    # one for each turtle!
+    # print('tree: level %d' % level)
+    # This is a Python generator, with next() built-in.
+    if level > 0:
+        lst = []
+        brs = []
+        for t, branchlist in list(zip(tlist,branchlists)):
+            t.pensize( size * widthfactor )
+            # t.pencolor( 255 - (180 - 11 * level + symRandom(15)),
+            #             180 - 11 * level + symRandom(15),
+            #             0 )
+            # Skulpt colors are three fractions
+            t.pencolor( (255 - (180 - 11 * level + symRandom(15)))/255.,
+                        (180 - 11 * level + symRandom(15))/255.,  0. )
+            t.pendown()
+            randomfd(t, size, level, angledist )
+            yield 1
+            for angle, sizefactor in branchlist:
+                t.left(angle)
+                lst.append(t.clone())
+                brs.append(randomize(branchlist, angledist, sizedist))
+                t.right(angle)
+        for x in tree(lst, size*sizefactor, level-1, widthfactor, brs,
+                      angledist, sizedist):
+            yield None
+
+
+def start(t,x,y):
+    # colormode(255)   # Python3
+    t.reset()
+    t.speed(0)
+    t.hideturtle()
+    t.left(90)
+    t.penup()
+    t.setpos(x,y)
+    t.pendown()
+
+def doit1(level, pen):
+    pen.hideturtle()
+    start(pen, 20 * scale, -208 * scale)
+    t = tree( [pen], 80 * scale, level, 0.1, [[ (45,0.69), (0,0.65), (-45,0.71) ]] )
+    return t
+
+def doit2(level, pen):
+    pen.hideturtle()
+    start(pen, -135 * scale, -130 * scale)
+    t = tree( [pen], 120 * scale, level, 0.1, [[ (45,0.69), (-45,0.71) ]] )
+    return t
+
+def doit3(level, pen):
+    pen.hideturtle()
+    start(pen, 190 * scale, -90 * scale)
+    t = tree( [pen], 100 * scale, level, 0.1, [[ (45,0.7), (0,0.72), (-45,0.65) ]] )
+    return t
+
+# Hier 3 Baumgeneratoren: (German)
+# Here 3 tree generators:
+def main():
+    p = Turtle()
+    p.ht()
+    tracer(75,0)
+    # Python3 has undobuffersize
+    # u = doit1(6, Turtle(undobuffersize=1))
+    # s = doit2(7, Turtle(undobuffersize=1))
+    # t = doit3(5, Turtle(undobuffersize=1))
+    u = doit1(6, Turtle())
+    print('Have u')
+    s = doit2(7, Turtle())
+    print('Have s')
+    t = doit3(5, Turtle())
+    print('Have t')
+    while True:
+        done = 0
+        for b in u,s,t:
+            try:
+                # b.__next__() # Python3, works in Trinket
+                b.next()       # JC: for Skulpt
+            except:
+                done += 1
+        if done == 3:
+            break
+
+    tracer(1,10)
+
+main()
+
+# Note: the forest thus generated is random.
+</textarea>
+
+<textarea id="mirror" class="hide">
+"""turtledemo.two_canvases
+
+Use TurtleScreen and RawTurtle to draw on two
+distinct canvases in a separate window. The
+new window must be separately closed in
+addition to pressing the STOP button.
+"""
+
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+
+STEP = 150 * scale
+
+def main():
+    # two turtles
+    p = Turtle()
+    q = Turtle()
+
+    p.color("red", (1, 0.85, 0.85))  # Python3 or Skulpt
+    p.width(3)
+    q.color("blue", (0.85, 0.85, 1)) # Python3 or Skulpt
+    q.width(3)
+
+    for t in p, q:
+        t.shape("turtle")
+        t.lt(36)
+
+    q.lt(180)
+
+    for t in p, q:
+        t.begin_fill()
+    for i in range(5):
+        for t in p, q:
+            t.fd(STEP)
+            t.lt(72)  # JC: 5 * 72 = 360
+    for t in p,q:
+        t.end_fill()
+        t.lt(54)
+        t.pu()
+        t.bk(STEP)
+
+    return "EVENTLOOP"
+
+main()
+
+# Note: Here we have two turtles instaed of two canvases. Luckily they don't overlap.
+</textarea>
+
+<textarea id="hanoi" class="hide">
+#!/usr/bin/env python3
+"""       turtle-example-suite:
+
+         tdemo_minimal_hanoi.py
+
+A minimal 'Towers of Hanoi' animation:
+A tower of 6 discs is transferred from the
+left to the right peg.
+
+An imho quite elegant and concise
+implementation using a tower class, which
+is derived from the built-in type list.
+
+Discs are turtles with shape "square", but
+stretched to rectangles by shapesize()
+ ---------------------------------------
+       To exit press STOP button
+ ---------------------------------------
+"""
+
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+window.bgcolor("yellow")
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 1 to 2 (default 1.2)') or '1.2')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.2
+
+# SHAPES.square   = [[ 10,-10],[10,10],[-10,10],[-10, -10]];
+# [(10, -10). (10,10), (-10,10), (-10, -10)]
+# shapesize(1.5, n*1.5, 2)
+# SHAPES.circle = [[10,0],[9.51,3.09],[8.09,5.88],[5.88,8.09],[3.09,9.51],[0,10],[-3.09,9.51], [-5.88,8.09],[-8.09,5.88],[-9.51,3.09],[-10,0]]
+def makeDisk(n):
+    name = 'Disk' + str(n)
+    # this is a rectangle
+    # poly = [(15, -15 * n), (15,15 * n), (-15,15 * n), (-15, -15 * n)]
+    # this is a rectangle with round corners
+    poly = [(15,15 * n), (14.27, 15 * n + 4.64), (12.14, 15 * n + 8.82), (8.82, 15 * n + 12.14), (4.64, 15 * n + 14.27),
+            (0, 15 * n + 15), (-4.64, 15 * n + 14.27), (-8.82, 15 * n + 12.14), (-12.14, 15 * n + 8.82), (-14.27, 15 * n + 4.64),
+            (-15,15 * n), # end of semicircle, do straight part to another semicircle
+            (-15, -15 * n + 15), (-14.27, -15 * n - 4.64), (-12.14, -15 * n - 8.82), (-8.82, -15 * n - 12.14), (-4.64, -15 * n - 14.27),
+            (0, -15 * n - 15), (4.64, -15 * n - 14.27), (8.82, -15 * n - 12.14), (12.14, -15 * n - 8.82), (14.17, -15 * n - 4.64), (15, -15 * n)]
+    print(name, poly)
+    window.register_shape(name, poly)
+    return name
+
+class Disc(Turtle):
+    def __init__(self, n):
+        # Turtle.__init__(self, shape="square", visible=False)  # Python3
+        Turtle.__init__(self)  # JC: this cannot be omitted
+        # self.shape("square")          # first make a square
+        # self.shapesize(1.5, n*1.5, 2) # square to rectangle  # Python3
+        self.shape(makeDisk(n))         # JC: use this one
+        self.ht()
+        self.pu()
+        self.fillcolor(n/6., 0, 1-n/6.)   # Python3 or Skulpt, with fractions
+        self.st()
+
+class Tower(list):
+    "Hanoi tower, a subclass of built-in type list"
+    # def __init__(self, x):
+    #     "create an empty tower. x is x-position of peg"
+    #     self.x = x
+    # JC: replace by this one
+    def setx(self, x):
+        list.__init__(self)  # JC: this cannot be omitted for Tower(), can be omitted for Tower([])
+        self.x = x
+    def push(self, d):
+        d.setx(self.x)
+        d.sety(-150+34*len(self))
+        # rint('push', d.pos())
+        self.append(d)
+    def pop(self):
+        d = list.pop(self)
+        d.sety(150)
+        # print('pop', d.pos())
+        return d
+
+def hanoi(n, from_, with_, to_):
+    if n > 0:
+        hanoi(n-1, from_, to_, with_)
+        to_.push(from_.pop())
+        hanoi(n-1, with_, from_, to_)
+
+def play():
+    # onkey(None,"space")    # Python3
+    # clear()                # Python3
+    window.onkey(None, "space")  # JC: disable SPACE bar
+    clear()                      # JC: remove the writing by default turtle
+    write("Tower of Hanoi with 6 disks",
+              align="center", font=("Courier", 16, "bold"))
+    try:
+        hanoi(6, t1, t2, t3)
+        clear()
+        write("All 6 disks transferred!",
+              align="center", font=("Courier", 16, "bold"))
+    except Terminator:
+        pass  # turtledemo user pressed STOP
+
+def main():
+    global t1, t2, t3
+    ht(); penup(); goto(0, -225)   # writer turtle
+    # Python3 constructors not working in Skulpt
+    # t1 = Tower(-250)
+    # t2 = Tower(0)
+    # t3 = Tower(250)
+    # JC: replace by these:
+    t1 = Tower(); t1.setx(-250 * scale)
+    t2 = Tower(); t2.setx(0 * scale)
+    t3 = Tower(); t3.setx(250 * scale)
+    # make tower of 6 discs, from big to small
+    for i in range(6,0,-1):
+        t1.push(Disc(i))
+    # prepare spartanic user interface ;-)
+    write("Press spacebar to start game",
+          align="center", font=("Courier", 16, "bold"))
+    # onkey(play, "space")  # Python3
+    # listen()              # Python3
+    window.onkey(play, "space")  # JC
+    window.listen()              # JC
+    return "EVENTLOOP"
+
+main()
+
+# Note: must click the canvas before pressing SPACE bar, now disc has round corners.
 </textarea>
 
 
