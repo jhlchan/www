@@ -67,7 +67,7 @@ Select an example:&nbsp; <select id="choice">
     <option value="gravity">Sun, Earth and Moon</option>
     <option value="forest">Forest</option>
     <option value="mirror">Two Turtles</option>
-    <option value="hanoi">Minimal Hanoi</option>
+    <option value="hanoi">Tower of Hanoi</option>
 </select>
 &nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
@@ -2691,7 +2691,7 @@ def makeDisk(n):
     window.register_shape(name, poly)
     return name
 
-# make the Tower
+# make the Tower shape
 def makeTower():
     """
     # JC: use this to make and adjust the tower shape,
@@ -2721,6 +2721,17 @@ def makeTower():
     poly = [(0.0, -102.5), (0.0, -2.5), (-250.0, -2.5), (-250.0, 2.5), (0.0, 2.5), (0.0, 102.5)]
     window.register_shape('tower', poly)
 
+# put the tower at position (x,y)
+def putTower(x, y):
+    t = Turtle()
+    t.shape("tower")
+    t.speed(0)
+    t.hideturtle()
+    t.penup()
+    t.goto(x, y)
+    t.showturtle()
+    return t    
+
 class Disc(Turtle):
     def __init__(self, n):
         # Turtle.__init__(self, shape="square", visible=False)  # Python3
@@ -2742,13 +2753,7 @@ class Tower(list):
     def setx(self, x):
         list.__init__(self)  # JC: this cannot be omitted for Tower(), can be omitted for Tower([])
         self.x = x
-        self.stand = Turtle()
-        self.stand.shape("tower")
-        self.stand.speed(0)
-        self.stand.hideturtle()
-        self.stand.penup()
-        self.stand.goto(x, -170) # JC: adjust for tower base
-        self.stand.showturtle()
+        self.stand = putTower(x, -170) # JC: adjust for tower base
     def push(self, d):
         d.setx(self.x)
         d.sety(-150+34*len(self))
@@ -2767,15 +2772,14 @@ def hanoi(n, from_, with_, to_):
         hanoi(n-1, with_, from_, to_)
 
 def play():
-    # onkey(None,"space")    # Python3
-    # clear()                # Python3
+    # onkey(None,"space")        # Python3
     window.onkey(None, "space")  # JC: disable SPACE bar
     clear()                      # JC: remove the writing by default turtle
     write("Tower of Hanoi with 6 disks",
               align="center", font=("Courier", 16, "bold"))
     try:
         hanoi(6, t1, t2, t3)
-        clear()
+        clear()                  # JC: remove the writing by default turtle
         write("All 6 disks transferred!",
               align="center", font=("Courier", 16, "bold"))
     except Terminator:
@@ -2808,6 +2812,7 @@ def main():
 main()
 
 # Note: must click the canvas before pressing SPACE bar, now disc has round corners.
+# The three towers have a shape, but cannot find the equivalent of STOP key.
 </textarea>
 
 
