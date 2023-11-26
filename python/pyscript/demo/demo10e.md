@@ -227,8 +227,6 @@ try:
     tracer(1)
 except Exception, e: print e
 
-
-# Oriental Daily 東方日報  8/11 娛樂
 </textarea>
 
 <textarea id="tree" class="hide">
