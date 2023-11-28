@@ -88,60 +88,78 @@ def square(t, s):
         t.rt(90)
         t.fd(s)
 
-# an arm of windmill w = (x, y, z)
-def arm(w, y, z):
-    w.color('black', 'green')
-    w.pd()
-    w.begin_fill()
-    w.fd(z * scale)
-    w.rt(90)
-    w.fd(y * scale)
-    w.rt(90)
-    w.fd(z * scale)
-    w.rt(90)
-    w.fd(y * scale)
-    w.end_fill()
-    w.pu()
+# the inner square of windmill w = (x, y, z) by turtle t
+def core(t, x):
+    t.color('black', 'pink')
+    t.begin_fill()
+    t.pd()
+    square(t, x)
+    t.end_fill()
+    t.pu()
 
-# the mind of windmill w = (x, y, z)
-def mind(w, x, y, z):
-    # first the inner square
-    w.color('black', 'pink')
-    w.begin_fill()
-    w.pd()
-    square(w, x * scale)
-    w.end_fill()
-    # then the outer mind
-    w.color('red')
-    w.pu()
-    w.fd(z * scale)
-    w.lt(90)
-    w.fd(z * scale)
-    w.rt(90)
-    w.pd()
-    size = w.pensize()
-    w.pensize(5)
-    square(w, (x + 2 * z) * scale)
-    w.pensize(size)
-    w.pu()
+# an arm of windmill w = (x, y, z) by turtle t
+def arm(t, y, z):
+    t.color('black', 'green')
+    t.pd()
+    t.begin_fill()
+    t.fd(z)
+    t.rt(90)
+    t.fd(y)
+    t.rt(90)
+    t.fd(z)
+    t.rt(90)
+    t.fd(y)
+    t.end_fill()
+    t.pu()
 
-# a windmill, index by j, at position pos, for tuple (x,y,z)
-def windmill(j, pos, tuple):
-    tuple = (50, 80, 10)
-    x, y, z = tuple
-    t = mills[j]
+# the mind of windmill w = (x, y, z) by turtle t
+# mind (x,y,z) =
+# if x < y - z then x + 2 * z else if x < y then 2 * y - x else x
+def mind(t, x, y, z):
+    if x < y - z:
+        t.fd(z)
+        t.lt(90)
+        t.fd(z)
+        t.rt(90)
+        m = x + 2 * z
+    else:
+        if x < y:
+            s = y - x
+            t.fd(s)
+            t.lt(90)
+            t.fd(s)
+            t.rt(90)
+            m = 2 * y - x
+        else:
+            m = x
+    # draw the mind
+    t.color('red')
+    t.pd()
+    size = t.pensize()
+    t.pensize(5)
+    square(t, m)
+    t.pensize(size)
+    t.pu()
+
+# a windmill turtle w, to be placed at position pos, for triple (x,y,z)
+def windmill(t, pos, triple):
     t.pu()
     t.goto(pos)
-    t.clear()
+    t.clear() # erase any writing and path
     t.setheading(90)
     t.backward(100 * scale)
     t.color('black')
-    t.write(str(tuple), font=("Courier", 16, "bold"))
+    t.write(str(triple), font=("Courier", 16, "bold"))
     t.forward(100 * scale)
+    x, y, z = triple
+    x, y, z = x * scale, y * scale, z * scale
+    # first the inner square
+    core(t, x)
+    # then the four arms
     for _ in range(4): # 4 sides and 4 arms
         arm(t, y, z)
         t.lt(180)
-        t.fd(x * scale)
+        t.fd(x)
     # mark the mind in red
     mind(t, x, y, z)
 
@@ -160,9 +178,11 @@ def main():
     while True:
         j += 1
         if j > 6: break
-        tuple = (j, j+1, j+2)
-        # clear() # erase any writing and path
-        windmill(j % 4, position(), tuple)
+        triple = (j, j+1, j+2)
+        if j % 3 == 0: triple = (50, 80, 10)
+        if j % 3 == 1: triple = (10, 50, 80)
+        if j % 3 == 2: triple = (50, 10, 80)
+        windmill(mills[j % 4], position(), triple)
         # sleep(2) # time to see the windmill
         fd(200 * scale)
         rt(90)
