@@ -47,10 +47,12 @@ include-after: |
 ## Turtle Graphics{#graphics}
 
 :::{#controls .py-input}
-Select an example:&nbsp; <select id="choice">
-    <option value="windmills" selected>Windmills</option>
-</select>
+Input prime: <input id="prime" class="py-input" value="29">
 &nbsp;&nbsp;&nbsp;
+Select mode:&nbsp; <select id="mode">
+    <option value="iterate" selected>iterate</option>
+    <option value="hopping">hopping</option>
+</select>
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
 &nbsp;&nbsp;&nbsp;
 <button id="stopButton" class="py-button" py-click="stopit()">Stop</button>
@@ -71,7 +73,12 @@ window = Screen()
 window.setup(1000, 1000) # default (500, 500)
 window.bgcolor("yellow")
 
-scale = 1.8
+# scale = 1.8
+scale = 10
+
+# input number and mode
+# n = 29, mode = 'iterate'
+print('n = %d, mode = "%s"' % (n, mode))
 
 # using 4 windmills, each a turtle, appearing in turn.
 mills = [Turtle() for i in range(4)]
@@ -99,7 +106,7 @@ def core(t, x):
 
 # an arm of windmill w = (x, y, z) by turtle t
 def arm(t, y, z):
-    t.color('black', 'green')
+    t.color('black', 'lavender')
     t.pd()
     t.begin_fill()
     t.fd(z)
@@ -117,23 +124,21 @@ def arm(t, y, z):
 # if x < y - z then x + 2 * z else if x < y then 2 * y - x else x
 def mind(t, x, y, z):
     if x < y - z:
-        t.fd(z)
-        t.lt(90)
-        t.fd(z)
-        t.rt(90)
+        s = z
         m = x + 2 * z
     else:
         if x < y:
             s = y - x
-            t.fd(s)
-            t.lt(90)
-            t.fd(s)
-            t.rt(90)
             m = 2 * y - x
         else:
+            s = 0
             m = x
     # draw the mind
-    t.color('red')
+    t.color('orange')
+    t.fd(s)
+    t.lt(90)
+    t.fd(s)
+    t.rt(90)
     t.pd()
     size = t.pensize()
     t.pensize(5)
@@ -147,10 +152,10 @@ def windmill(t, pos, triple):
     t.goto(pos)
     t.clear() # erase any writing and path
     t.setheading(90)
-    t.backward(100 * scale)
+    t.backward(10 * scale)
     t.color('black')
     t.write(str(triple), font=("Courier", 16, "bold"))
-    t.forward(100 * scale)
+    t.forward(10 * scale)
     x, y, z = triple
     x, y, z = x * scale, y * scale, z * scale
     # first the inner square
@@ -163,6 +168,55 @@ def windmill(t, pos, triple):
     # mark the mind in red
     mind(t, x, y, z)
 
+# flip a triple
+# flip (x,y,z) = (x,z,y)
+def flip(triple):
+    x, y, z = triple
+    return (x, z, y)
+
+# zagier map of a triple
+# zagier (x,y,z) =
+# if x < y - z then (x + 2 * z,z,y - z - x)
+# else if x < 2 * y then (2 * y - x,y,x + z - y)
+# else (x - 2 * y,x + z - y,y)
+def zagier(triple):
+    x, y, z = triple
+    if x < y - z: return (x + 2 * z, z, y - z - x)
+    if x < 2 * y: return (2 * y - x, y, x + z - y)
+    return (x - 2 * y, x + z - y, y)
+
+# check for zagier fix
+def zagier_fix(triple):
+    x, y, z = triple
+    return x == y
+
+# check for flip fix
+def flip_fix(triple):
+    x, y, z = triple
+    return y == z
+
+# mark and tell the two squares from windmill triple
+def twoSquares(triple):
+    x, y, z = triple
+    setheading(0)
+    fd(x/2 * scale)
+    rt(90)
+    fd((x/2 + x + y + z) * 2 * scale)
+    lt(90)
+    color('green')
+    pensize(2)
+    pd()
+    circle((x + y + z) * 2 * scale)
+    pu()
+    home()
+    setheading(0)
+    back(2 * scale)
+    s = '%d = %d² + %d²' % (n, x, y + z)
+    write(s, font=("Courier", 20, "bold"))
+
+debug = True
+# debug = False
+
 # main program
 def main():
     initMills()
@@ -172,24 +226,26 @@ def main():
     hideturtle()
     pu()
     setheading(90) # face north
-    fd(200 * scale)
-    rt(135)  # 135 = 180 - 45
+    s = 30 # size of virtual square for 4 diagrams
+    fd(s * scale)
+    rt(135) # 135 = 180 - 45
+    triple = (1, n // 4, 1) if mode == "hopping" else (1, 1, n // 4)
     j = 0
     while True:
-        j += 1
-        if j > 6: break
-        triple = (j, j+1, j+2)
-        if j % 3 == 0: triple = (50, 80, 10)
-        if j % 3 == 1: triple = (10, 50, 80)
-        if j % 3 == 2: triple = (50, 10, 80)
+        if debug: print('%d: %s' % (j, str(triple)))
         windmill(mills[j % 4], position(), triple)
         # sleep(2) # time to see the windmill
-        fd(200 * scale)
+        if flip_fix(triple): break
+        # next triple
+        triple = flip(triple) if j % 2 == 0 else zagier(triple)
+        # next corner
+        fd(s * scale)
         rt(90)
-    rt(45)
-    back(150 * scale)
-    pd()
-    write('Done!', font=("Courier", 16, "bold"))
+        # count escape
+        j += 1
+        if j > 6: break
+    # out of loop
+    twoSquares(triple)
 
 try:
     main()
@@ -314,18 +370,18 @@ def builtinRead(x):
 Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfunTakesPrompt = True,) # Yes! this works!
 # Sk.configure(output=create_proxy(outf), read=create_proxy(builtinRead), inputfun=create_proxy(inf), inputfunTakesPrompt = True,) # Yes! this works!
 
-# get a program from selection
-def get_program(label):
-    name = Element(label).value
-    return Element(name).value
-
 # run a python program in Skulpt
 # by calling Sk.importMainWithBody()
 def runit():
     # clear output
     Element('output').element.innerHTML = ''
+    # get prime and mode
+    prime = int(Element('prime').value)
+    mode = Element('mode').value
+    if debug: print('prime: %d, mode: "%s"' % (prime, mode))
     # get program
-    program = get_program('choice')
+    program = ('n, mode = %d, "%s"' % (prime, mode)) + '\n' + Element('windmills').value
+    print(program)
     if debug: print(program)
 
     # run the program
