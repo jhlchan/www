@@ -50,8 +50,9 @@ include-after: |
 Input prime: <input id="prime" class="py-input" value="29">
 &nbsp;&nbsp;&nbsp;
 Select mode:&nbsp; <select id="mode">
-    <option value="iterate" selected>iterate</option>
-    <option value="hopping">hopping</option>
+    <option value="stepping" selected>Step by step</option>
+    <option value="iterating">Iteration</option>
+    <option value="hopping">Hopping</option>
 </select>
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
 &nbsp;&nbsp;&nbsp;
@@ -73,11 +74,10 @@ window = Screen()
 window.setup(1000, 1000) # default (500, 500)
 window.bgcolor("yellow")
 
-# scale = 1.8
-scale = 10
+scale = 10 # as scale = 1.0 is too small
 
 # input number and mode
-# n = 29, mode = 'iterate'
+# n = 29, mode = 'iterating'
 print('n = %d, mode = "%s"' % (n, mode))
 
 # using 4 windmills, each a turtle, appearing in turn.
@@ -134,7 +134,7 @@ def mind(t, x, y, z):
             s = 0
             m = x
     # draw the mind
-    t.color('orange')
+    t.color('red')
     t.fd(s)
     t.lt(90)
     t.fd(s)
@@ -195,6 +195,23 @@ def flip_fix(triple):
     x, y, z = triple
     return y == z
 
+# step for hopping
+# step c (x,y,z) = (x + c) DIV (2 * z)
+def step(c, triple):
+    x, y, z = triple
+    return (x + c) // (2 * z)
+
+# pop for hopping with known condition
+# pop m (x,y,z) = (2 * m * z - x,z,y + m * x - m ** 2 * z)
+def pop(m, triple):
+    x, y, z = triple
+    return (2 * m * z - x, z, y + m * x - m * m * z)
+
+# popping from a triple
+# popping c t = pop (step c t) t
+def popping(c, triple):
+    return pop(step(c, triple), triple)
+
 # mark and tell the two squares from windmill triple
 def twoSquares(triple):
     x, y, z = triple
@@ -217,8 +234,8 @@ def twoSquares(triple):
 debug = True
 # debug = False
 
-# main program
-def main():
+# step by step with flip and zagier from zagier-fix
+def stepByStep():
     initMills()
     # use the default turtle
     # showturtle()
@@ -229,7 +246,7 @@ def main():
     s = 30 # size of virtual square for 4 diagrams
     fd(s * scale)
     rt(135) # 135 = 180 - 45
-    triple = (1, n // 4, 1) if mode == "hopping" else (1, 1, n // 4)
+    triple = (1, 1, n // 4)
     j = 0
     while True:
         if debug: print('%d: %s' % (j, str(triple)))
@@ -243,9 +260,89 @@ def main():
         rt(90)
         # count escape
         j += 1
-        if j > 6: break
+        if j > n: break
     # out of loop
     twoSquares(triple)
+    rt(90)
+    fd(s * scale)
+    write('Number of steps = %d' % j, font=("Courier", 20, "bold"))
+
+# iterate by (zagier o flip) from zagier-fix
+def iterating():
+    initMills()
+    # use the default turtle
+    # showturtle()
+    # speed(0)
+    hideturtle()
+    pu()
+    setheading(90) # face north
+    s = 30 # size of virtual square for 4 diagrams
+    fd(s * scale)
+    rt(135) # 135 = 180 - 45
+    triple = (1, 1, n // 4)
+    j = 0
+    while True:
+        if debug: print('%d: %s' % (j, str(triple)))
+        windmill(mills[j % 4], position(), triple)
+        if flip_fix(triple): break
+        sleep(3) # 3s = delay flipping to see the windmill
+        # flip triple
+        triple = flip(triple)
+        windmill(mills[j % 4], position(), triple)
+        # next triple
+        triple = zagier(triple)
+        # next corner
+        fd(s * scale)
+        rt(90)
+        # count escape
+        j += 1
+        if j > n: break
+    # out of loop
+    twoSquares(triple)
+    rt(90)
+    fd(s * scale)
+    write('Number of steps = %d' % j, font=("Courier", 20, "bold"))
+
+# hopping by (zagier o flip) from flip of zagier-fix
+def hopping():
+    initMills()
+    # use the default turtle
+    # showturtle()
+    # speed(0)
+    hideturtle()
+    pu()
+    setheading(90) # face north
+    s = 30 # size of virtual square for 4 diagrams
+    fd(s * scale)
+    rt(135) # 135 = 180 - 45
+    triple = (1, n // 4, 1)
+    c = int(n ** 0.5) # c = sqrt(n)
+    j = 0
+    while True:
+        if debug: print('%d: %s' % (j, str(triple)))
+        windmill(mills[j % 4], position(), triple)
+        # sleep(3) # 3s = time to see the windmill
+        if flip_fix(triple): break
+        # next triple
+        triple = popping(c, triple)
+        # next corner
+        fd(s * scale)
+        rt(90)
+        # count escape
+        j += 1
+        if j > n: break
+    # out of loop
+    twoSquares(triple)
+    rt(90)
+    fd(s * scale)
+    write('Number of steps = %d' % j, font=("Courier", 20, "bold"))
+
+# main program
+def main():
+    # choose based on mode
+    if mode == 'stepping': stepByStep()
+    if mode == 'iterating': iterating()
+    if mode == 'hopping': hopping()
 
 try:
     main()
