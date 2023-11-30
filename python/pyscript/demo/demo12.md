@@ -54,6 +54,7 @@ Select mode:&nbsp; <select id="mode">
     <option value="iterating">Iteration</option>
     <option value="hopping">Hopping</option>
 </select>
+&nbsp;&nbsp;&nbsp;
 <button id="runButton" class="py-button" py-click="runit()" >Run</button>
 &nbsp;&nbsp;&nbsp;
 <button id="stopButton" class="py-button" py-click="stopit()">Stop</button>
@@ -75,6 +76,10 @@ window.setup(1000, 1000) # default (500, 500)
 window.bgcolor("yellow")
 
 scale = 10 # as scale = 1.0 is too small
+
+# quick will use tracer(0)
+quick = True
+# quick = False
 
 # input number and mode
 # n = 29, mode = 'iterating'
@@ -148,6 +153,7 @@ def mind(t, x, y, z):
 
 # a windmill turtle w, to be placed at position pos, for triple (x,y,z)
 def windmill(t, pos, triple):
+    if quick: t.tracer(0)
     t.pu()
     t.goto(pos)
     t.clear() # erase any writing and path
@@ -167,6 +173,11 @@ def windmill(t, pos, triple):
         t.fd(x)
     # mark the mind in red
     mind(t, x, y, z)
+    # show this
+    if quick: 
+        t.update() # due to t.tracer(0)
+        sleep(1)   # wait 1 second
+        t.tracer(1)
 
 # flip a triple
 # flip (x,y,z) = (x,z,y)
