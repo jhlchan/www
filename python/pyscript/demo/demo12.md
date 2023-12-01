@@ -47,7 +47,7 @@ include-after: |
 ## Turtle Graphics{#graphics}
 
 :::{#controls .py-input}
-Input prime: <input id="prime" class="py-input" value="29">
+Input tik prime: <input id="prime" class="py-input" value="29">
 &nbsp;&nbsp;&nbsp;
 Select mode:&nbsp; <select id="mode">
     <option value="stepping" selected>Step by step</option>
@@ -158,10 +158,6 @@ def windmill(t, pos, triple):
     t.goto(pos)
     t.clear() # erase any writing and path
     t.setheading(90)
-    t.backward(10 * scale)
-    t.color('black')
-    t.write(str(triple), font=("Courier", 16, "bold"))
-    t.forward(10 * scale)
     x, y, z = triple
     x, y, z = x * scale, y * scale, z * scale
     # first the inner square
@@ -173,6 +169,12 @@ def windmill(t, pos, triple):
         t.fd(x)
     # mark the mind in red
     mind(t, x, y, z)
+    # tell this
+    t.goto(pos)
+    t.setheading(90)    
+    t.backward(10 * scale)
+    t.color('black')
+    t.write(str(triple), font=("Courier", 16, "bold"))
     # show this
     if quick: 
         t.update() # due to t.tracer(0)
@@ -238,7 +240,7 @@ def twoSquares(triple):
     pu()
     home()
     setheading(0)
-    back(2 * scale)
+    back(5 * scale)
     s = '%d = %d² + %d²' % (n, x, y + z)
     write(s, font=("Courier", 20, "bold"))
 
@@ -246,11 +248,8 @@ debug = True
 # debug = False
 
 # step by step with flip and zagier from zagier-fix
-def stepByStep():
-    initMills()
-    # use the default turtle
-    # showturtle()
-    # speed(0)
+def stepByStep(n):
+    # use the default turtle for 4 corners in turn
     hideturtle()
     pu()
     setheading(90) # face north
@@ -279,11 +278,8 @@ def stepByStep():
     write('Number of steps = %d' % j, font=("Courier", 20, "bold"))
 
 # iterate by (zagier o flip) from zagier-fix
-def iterating():
-    initMills()
-    # use the default turtle
-    # showturtle()
-    # speed(0)
+def iterating(n):
+    # use the default turtle for 4 corners in turn
     hideturtle()
     pu()
     setheading(90) # face north
@@ -315,11 +311,8 @@ def iterating():
     write('Number of steps = %d' % j, font=("Courier", 20, "bold"))
 
 # hopping by (zagier o flip) from flip of zagier-fix
-def hopping():
-    initMills()
-    # use the default turtle
-    # showturtle()
-    # speed(0)
+def hopping(n):
+    # use the default turtle for 4 corners in turn
     hideturtle()
     pu()
     setheading(90) # face north
@@ -348,12 +341,42 @@ def hopping():
     fd(s * scale)
     write('Number of steps = %d' % j, font=("Courier", 20, "bold"))
 
+# check if number is a tik
+def is_tik(n):
+    return n % 4 == 1
+
+# get factor of a number
+def factor_of(n):
+    c = int(n ** 0.5)  # integer square root of n
+    for j in range(2, c + 1):
+        if n % j == 0: return j
+    return 1
+
+# check if number is valid
+def check(n):
+    if not is_tik(n): return 'Not a tik: %d ≠ 4k + 1 for some k.' % n
+    p = factor_of(n)
+    if not p == 1: return 'Not a prime: %d = %d x %d' % (n, p, n // p)
+    return 'ok'
+
 # main program
 def main():
-    # choose based on mode
-    if mode == 'stepping': stepByStep()
-    if mode == 'iterating': iterating()
-    if mode == 'hopping': hopping()
+    initMills() # hide the mill turtles
+    msg = check(n)
+    if msg == 'ok':
+        # choose based on mode
+        if mode == 'stepping': stepByStep(n)
+        if mode == 'iterating': iterating(n)
+        if mode == 'hopping': hopping(n)
+    else:
+        hideturtle()
+        pu()
+        home()
+        setheading(0)
+        back(20 * scale)
+        pd()
+        color('red')
+        write(msg, font=("Courier", 20, "bold"))
 
 try:
     main()
