@@ -300,7 +300,7 @@ def main():
 main()
 </textarea>
 
-<textarea id="dance" class="hide">
+<textarea id="zdance" class="hide">
 """      turtle-example-suite:
 
          tdemo_round_dance.py
@@ -419,6 +419,135 @@ main()
 
 # Note: Python3 demo example has compound shape.
 # For simple register_shape, the turtle shape is always filled, so no components.
+</textarea>
+
+<textarea id="dance" class="hide">
+"""      turtle-example-suite:
+
+         tdemo_round_dance.py
+
+(Needs version 1.1 of the turtle module that
+comes with Python 3.1)
+
+Dancing turtles have a compound shape
+consisting of a series of triangles of
+decreasing size.
+
+Turtles march along a circle while rotating
+pairwise in opposite direction, with one
+exception. Does that breaking of symmetry
+enhance the attractiveness of the example?
+
+Press any key to stop the animation.
+
+Technically: demonstrates use of compound
+shapes, transformation of shapes as well as
+cloning turtles. The animation is
+controlled through update().
+"""
+
+from turtle import *
+
+# Create a turtle screen
+window = Screen()
+window.setup(1000, 1000) # default (500, 500)
+# window.bgcolor("yellow")
+window.bgcolor("#1a1a1a") # color = gray10
+
+# use a scale to enlarge or shrink
+scale = float(input('Please set a scale from 0.1 to 2.5 (default 1.8)') or '1.8')
+print('scale = %f' % scale) # Python 2.6 formatting
+# for the window above, best scale = 1.8
+# scale = 1.8
+
+# turtle t draws a triangle with side s, optional color c
+def triangle(t, s, c = (1,0,0)):
+    t.pu()
+    t.rt(90)
+    t.fd(0.57735 * s)   # m * cos(30) = s/2, so m sqrt(3)/2 = s/2, or m = s/sqrt(3) = 0.57735 * s
+    t.rt(150)           # 180 - 30 = 150
+    t.pd()
+    t.color('black', c)
+    t.begin_fill()
+    for _ in range(3):  # three sides for triangle
+        t.fd(s)
+        t.rt(120)       # interior 60, exterior = 180 - 60 = 120
+    t.fd(1)             # close the last little bit
+    t.end_fill()
+    t.pu()
+
+# turtle t draws triangle with side s and optional color, restores turtle
+def drawTriangle(t, s, color = (1,0,0)):
+    head = t.heading() # save heading
+    pos = t.position() # save position
+    triangle(t, s, color)
+    t.setheading(head) # restore heading
+    t.setposition(pos) # restore position
+
+# global constants
+f =   0.793402
+phi = 9.064678    # 10 * phi is almost 90 degrees
+# for an angle phi, f = side ratio = median ratio = sin(30 deg)/sin(180 deg - (30 deg + phi)) = sin(30)/sin(30 + phi)
+# so for phi = 9.064678, f = sin(30 deg)/sin(39.064678 deg) = 0.7934023623785412
+# import math
+# math.sin(30 * math.pi/180)/math.sin((30 + 9.064678) * math.pi/180) or
+# math.sin(math.radians(30))/math.sin(math.radians(30 + 9.064678))
+# gives: 0.7934023623785412
+
+# turtle t draws the nested triangle shape, with optional tilt angle
+def drawShape(t, s, angle = 0, undo = False):
+    t.tracer(0)
+    t.clear()
+    t.rt(angle)
+    c = 1
+    for _ in range(10): # 10 levels of nesting
+        c *= f
+        drawTriangle(t, s, (c, 0.25, 1-c))
+        t.rt(phi)
+        s *= f
+    if undo: t.lt(phi * 10)  # undo 10 phi right turns for core    
+    t.update()
+    t.tracer(1)
+
+def main():
+    # have the default turtle and 180/12 = 15 clone turtles
+    # set properties of default turtle
+    hideturtle()  # hide the default turtle, and all clones
+    tracer(0)     # all no trace, need update()
+    pu()
+    setpos(0, -200 * scale)
+    dancers = []
+    for i in range(180):
+        fd(7 * scale)
+        lt(2)
+        if i % 12 == 0:
+            dancers.append(clone())
+    # tracer(1) # no effect?
+    home()
+    s = 100 # original s = 5, 5 * 20 = 100
+    core = clone()
+    drawShape(core, s * scale, 0, True)
+    # dance
+    cs = 1 # size of core
+    while True:
+        ta = -4
+        for dancer in dancers:
+            dancer.fd(7 * scale)
+            dancer.lt(2)
+            drawShape(dancer, s * scale, ta) # keep 10 phi right turns for dancer, aligns with forward
+            ta = -4 if ta > 0 else 2 # oscillate ta between -4 and 2
+            # JC: tiny oscillation is masked by the 10 phi right turns. They do affect the dancer distances.
+        if cs < 180:
+            drawShape(core, s * cs * scale, 10, True) # right turn 10, undo 10 phi right turns for core
+            # cs *= 1.005  # core keep getting bigger
+            cs *= 1.1
+
+try:
+    main()
+except Exception, e: print e
+
+# Note: Python3 demo example has compound shape.
+# This version try to compose the same compound shape.
 </textarea>
 
 <textarea id="mixer" class="hide">
