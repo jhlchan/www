@@ -495,8 +495,10 @@ phi = 9.064678    # 10 * phi is almost 90 degrees
 # gives: 0.7934023623785412
 
 # turtle t draws the nested triangle shape, with optional tilt angle
-def drawShape(t, s, angle = 0, undo = False):
+def drawShape(t, s, angle = 0):
     t.tracer(0)
+    head = t.heading() # save heading
+    pos = t.position() # save position
     t.clear()
     t.rt(angle)
     c = 1
@@ -505,8 +507,9 @@ def drawShape(t, s, angle = 0, undo = False):
         drawTriangle(t, s, (c, 0.25, 1-c))
         t.rt(phi)
         s *= f
-    if undo: t.lt(phi * 10)  # undo 10 phi right turns for core    
     t.update()
+    t.setheading(head) # restore heading
+    t.setposition(pos) # restore position
     t.tracer(1)
 
 def main():
@@ -526,21 +529,21 @@ def main():
     home()
     s = 100 # original s = 5, 5 * 20 = 100
     core = clone()
-    drawShape(core, s * scale, 0, True)
+    drawShape(core, s * scale)
     # dance
     cs = 1 # size of core
     while True:
-        ta = -4
+        ta = -10
         for dancer in dancers:
             dancer.fd(7 * scale)
             dancer.lt(2)
-            drawShape(dancer, s * scale, ta) # keep 10 phi right turns for dancer, aligns with forward
-            ta = -4 if ta > 0 else 2 # oscillate ta between -4 and 2
-            # JC: tiny oscillation is masked by the 10 phi right turns. They do affect the dancer distances.
+            drawShape(dancer, s * scale, ta)
+            ta = -10 if ta > 0 else 10 # oscillate ta between -4 and 2
+            # JC: the oscillation is not very evident
         if cs < 180:
-            drawShape(core, s * cs * scale, 10, True) # right turn 10, undo 10 phi right turns for core
-            # cs *= 1.005  # core keep getting bigger
-            cs *= 1.1
+            core.rt(10)
+            drawShape(core, s * cs * scale)
+            cs *= 1.2  # core keep getting bigger, original cs *= 1.005
 
 try:
     main()
