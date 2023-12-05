@@ -35,8 +35,8 @@ include-before: |
     <script zsrc="https://skulpt.org/js/skulpt.min.js" src="js/skulpt.min.js" xsrc="js/readable-skulpt.js" type="text/javascript"></script>
     <script zsrc="https://skulpt.org/js/skulpt-stdlib.js" src="js/jc-skulpt-stdlib.js" ysrc="js/skulpt-stdlib.js"  xsrc="js/readable-skulpt-stdlib.js" type="text/javascript"></script>
 include-after: |
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <link rel="stylesheet" zhref="https://pyscript.net/latest/pyscript.css" href="js/pyscript.css"/>
+    <script defer zsrc="https://pyscript.net/latest/pyscript.js" src="js/pyscript.js"></script>
     <!-- python -m http.server, URL: http://0.0.0.0:8000/demo/demo10e.html -->
     <!-- file:///Users/josephchan/jc/www/python/pyscript/demo/demo10e.html -->
 ---
@@ -447,6 +447,7 @@ controlled through update().
 """
 
 from turtle import *
+from time import sleep
 
 # Create a turtle screen
 window = Screen()
@@ -494,24 +495,17 @@ phi = 9.064678    # 10 * phi is almost 90 degrees
 # math.sin(math.radians(30))/math.sin(math.radians(30 + 9.064678))
 # gives: 0.7934023623785412
 
-# turtle t draws the nested triangle shape, with optional tilt angle
-def drawShape(t, s, angle = 0):
-    t.tracer(0)
-    head = t.heading() # save heading
-    pos = t.position() # save position
-    t.clear()
-    t.rt(angle)
+# turtle t draws the nested triangle shape, with optional tilt
+def drawShape(t, s):
     c = 1
     for _ in range(10): # 10 levels of nesting
         c *= f
         drawTriangle(t, s, (c, 0.25, 1-c))
         t.rt(phi)
         s *= f
-    t.update()
-    t.setheading(head) # restore heading
-    t.setposition(pos) # restore position
-    t.tracer(1)
 
+# There is the default turtle, and 15 dancer turtles.
+# The shape turtle goes to each one, and draws the shape.
 def main():
     # have the default turtle and 180/12 = 15 clone turtles
     # set properties of default turtle
@@ -523,27 +517,38 @@ def main():
     for i in range(180):
         fd(7 * scale)
         lt(2)
-        if i % 12 == 0:
-            dancers.append(clone())
-    # tracer(1) # no effect?
+        if i % 12 == 0: dancers.append(clone())
     home()
+    # have a shape turtle to draw everything
     s = 100 # original s = 5, 5 * 20 = 100
-    core = clone()
-    drawShape(core, s * scale)
-    # dance
-    cs = 1 # size of core
+    shape = clone()
+    shape.hideturtle()
+    shape.tracer(0)
+    cs = 1 # current size of core, to be magnified
+    tilt = True
     while True:
-        ta = -10
+        shape.clear() # repaint the whole picture
+        # core turns
+        if cs < 180:
+            rt(10)
+            shape.setposition(pos())
+            shape.setheading(heading())
+            drawShape(shape, s * cs * scale)
+            cs *= 1.005  # keep getting bigger
+        # dancers dance   
+        ta = -10 if tilt else 10 # set ta by parity
+        tilt = not tilt          # invert parity
         for dancer in dancers:
+            # move dancers
             dancer.fd(7 * scale)
             dancer.lt(2)
-            drawShape(dancer, s * scale, ta)
-            ta = -10 if ta > 0 else 10 # oscillate ta between -4 and 2
-            # JC: the oscillation is not very evident
-        if cs < 180:
-            core.rt(10)
-            drawShape(core, s * cs * scale)
-            cs *= 1.2  # core keep getting bigger, original cs *= 1.005
+            shape.setposition(dancer.pos())
+            shape.setheading(dancer.heading())
+            shape.rt(ta)
+            drawShape(shape, s * scale)
+            ta = -10 if ta > 0 else 10 # oscillate ta, original between -4 and 2
+        shape.update()
+        sleep(0.1) # no sleep is too fast!
 
 try:
     main()
