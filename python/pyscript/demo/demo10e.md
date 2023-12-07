@@ -550,9 +550,7 @@ def main():
         shape.update()
         sleep(0.1) # no sleep is too fast!
 
-try:
-    main()
-except Exception, e: print e
+main()
 
 # Note: Python3 demo example has compound shape.
 # This version try to compose the same compound shape.
@@ -1386,15 +1384,27 @@ def changecolor():
     color(colors[0])
     fillcolor(colors[0])
 
+def show_text(text, line=0):
+    line = 20 * line
+    pu()
+    goto(0,-400 - line)
+    write(text, align="center", font=("Courier", 16, "bold"))
+
 def main():
     speed(0)  # JC
     # shape("circle")
     # resizemode("user")   # Python3
     # shapesize(.5)        # Python3
+    show_text('Click a spot to move the turtle, press x to toggle pen up or down.')
+    show_text('Press c to change color of turtle, press z to clear the painting.', line=1)
+    show_text('Turtle will appear as a circle when pen up, a triangle when pen down.', line=2)
+    show_text('If path is closed, painting will fill color upon pen up (press x).', line=3)
+    home()
+    pd()
     width(3)
     color(colors[0])
     fillcolor(colors[0])
-    switchupdown()
+    switchupdown()  # set up as pen up from pd(), showing circle.
     # onscreenclick(goto,1)             # Python3
     # onscreenclick(changecolor,2)      # Python3
     # onscreenclick(switchupdown,3)     # Python3
